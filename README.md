@@ -1,1 +1,216 @@
 # Clarity-NRDR
+
+Clarity-Pilot with explicitly selected NRDR-derived Honda Clarity TRW-A020 PTC
+EPS support. PTC is disabled by default; stock and legacy tuning remain available.
+
+Read [firmware selection, integration details and qualification status](docs/CLARITY_PTC.md)
+before enabling the profile. This is an experimental source-tested port;
+vehicle qualification is still required.
+
+---
+
+# Clarity Pilot
+
+Clarity Pilot is a personal, experimental [sunnypilot](https://github.com/sunnypilot/sunnypilot) build for a **comma 4** paired with either an **NVIDIA Jetson Orin Nano Super Developer Kit (8 GB)** or a **Pixel 11 Pro XL**. It uses [JetLink](https://github.com/zoompilot/jetlink) to run a large driving model on the attached accelerator over USB, while keeping the selected small model available on the comma.
+
+**This is a custom build for my car. Do not use this.**
+
+[Comma setup](#repository-and-comma-installation) · [Jetson setup](#jetson-setup) · [Pixel setup / APK](#pixel-setup) · [Models](#models) · [Validation](#what-has-been-verified) · [Troubleshooting](#troubleshooting) · [Reports](#logs-and-reports)
+
+## How it works
+
+**Storage maintenance:** the comma now keeps a 20 GiB offroad recording budget, with its newest two routes and marked recordings protected; the Jetson has bounded journal storage and hourly system-log rotation. See [retention policies, installation, and rollback](scripts/maintenance/README.md). October 3 cleanup increased comma free space from 8.9 GiB to 56 GiB.
+
+The comma handles cameras, image warp, model-output parsing, vehicle control, driver monitoring, and communication with the car. The Jetson runs TensorRT inference; the Pixel app uses LiteRT GPU inference. Either returns model outputs over the same JetLink protocol. Attach one accelerator at a time. Neither accelerator has a CAN connection.
+
+```text
+comma 4                                    Choose one accelerator
+cameras → image warp ─── USB 3 ────────────→ Jetson: TensorRT
+vehicle control ← model parser ←── USB 3 ─── Pixel: LiteRT GPU
+                                           model history → predictions
+```
+
+The small model starts first. Once the USB link and large-model engine are ready, JetLink can join without restarting the drive. A link failure returns inference to the selected small model and starts reconnection attempts. Loss of the large model while engaged is a soft-disable condition; fallback does not guarantee uninterrupted engagement.
+
+## Verified hardware and software
+
+Software and model selection were updated on October 3, 2026. Hardware details retain the earlier live checks:
+
+| Component | Verified configuration |
+| --- | --- |
+| Driving device | comma 4 |
+| Accelerator | NVIDIA Jetson Orin Nano Super Developer Kit, 8 GB |
+| Jetson OS | Ubuntu 24.04.4, JetPack 7.2.1 / L4T 39.2.1 |
+| JetLink server | 0.8.0, native systemd service, protocol v3 |
+| Android accelerator | Pixel 11 Pro XL, Android 17, JetLink 0.8.0 / version code 800 |
+| Pixel inference runtime | LiteRT GPU; model execution still awaiting validation |
+| Inference runtime | TensorRT 10.16.2.10 |
+| Power profile | MAXN_SUPER, mode 2 |
+| Car power behavior | Switched with the car; suspend timer disabled |
+| Data connection | Jetson USB-A host port → comma USB-C, USB 3 data cable |
+| Jetson networking | Ethernet; retired USB Wi-Fi driver removed October 3 |
+| Model cache | `/mnt/data/jetlink` on the Jetson |
+
+### Which Jetson is it?
+
+A live SSH check returned this device-tree model:
+
+```text
+NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+```
+
+The identifiers are module `P3767-0005`, carrier `P3768-0000`, and SoC `tegra234`, with the `-super` configuration. NVIDIA identifies that module as the [Jetson Orin Nano 8 GB](https://docs.nvidia.com/jetson/archives/r36.5/DeveloperGuide/IN/QuickStart.html#jetson-modules-and-configurations), and calls the kit the [Jetson Orin Nano Super Developer Kit](https://docs.nvidia.com/jetson/orin-nano-devkit/user-guide/latest/). **“Orin” is part of the full product name.** This confirms the current platform; it does not establish whether the original retail package predated the Super software update.
+
+Use a separate regulated Jetson supply sized for the selected power profile, with adequate cooling. The Jetson's USB-A port carries the data connection; its USB-C port is not the JetLink host connection to the comma.
+
+## Models
+
+| Role | Repository default | Behavior |
+| --- | --- | --- |
+| Small model on the comma | **The Cool Peoples Model v3 (TCPMV3)**, October 10, 2025 | The source checkout queues it on fresh installs. Existing selections are preserved; the current device deployment retains CD210. |
+| Large model on comma + Jetson | **Cinque Terre Model V2**, September 8, 2026 | Available through Accelerator Link; downloaded and prepared when selected. |
+
+The source checkout includes automatic first-install TCPMV3 selection; that provisioning feature is not yet part of the separate device deployment branch. Its current selected small model is CD210 Model (February 03, 2026).
+
+In the source checkout, interrupted first-install small-model downloads retry while parked. Explicitly cancelling the download or choosing another small model stops automatic selection. The bundled model remains available during initial provisioning.
+
+On October 3, V2 was downloaded and SHA-256 verified on both the comma and Jetson, and its TensorRT engine was built and loaded. The matching model hash is `09d080f36965bb2a0790500452bd328aa03c484d0222aa79d1ad9f021a522aec`. The Pixel APK is installed, but its V2 preparation remains unverified.
+
+The September 26 drive used the previously selected **Cinque Terre Model, September 4, 2026**, not V2. Its model selection was preserved during the Jetson update. Most models in this repository's JetLink catalog are about 766 MB before engine preparation; allow several GB for downloads, engines, containers, and updates.
+
+The comma client is pinned to JetLink **0.8.0**, commit `9f3d3187758b810adc99b06cc0a1a19ab73b7acb`, using **protocol v3**. Use the matching 0.8.0 Jetson server or Android app. Protocol v2 servers (including the previously tested 0.4.0 Jetson) cannot connect to this client; update both ends together.
+
+Protocol v3 keeps recurrent features on the accelerator and transfers only the scalar inputs alongside the warped images. The comma integration uses the new packed layout and preserves full raw predictions when `SEND_RAW_PRED` is enabled. Its existing queued-model catalog and small-model fallback remain in place. The USB gadget setup script is retained in the Clarity Pilot integration because upstream 0.8.0 removed the old setup entry point.
+
+The October 3 update passed 195 isolated source-integration tests, 164 tests against the installed comma integration, and 107 upstream protocol/USB tests. The Jetson 0.8.0 service loaded its existing engine using TensorRT 10.16.2.10; its cache and switched-power setting were preserved. A staged client on the comma completed a v3 handshake and 21 synthetic inference frames over the desk network, including a full raw-output response. These checks do not replace a parked USB connection test, Android model benchmark/parity checks, or driving validation. The September drive results below describe the older software.
+
+To update an existing Jetson installation while preserving its settings:
+
+```sh
+jetlink update --ref v0.8.0
+```
+
+This release migrates the Jetson server from Docker to a native service. For Android, build the same pinned revision using [upstream's Android instructions](https://github.com/zoompilot/jetlink/blob/9f3d3187758b810adc99b06cc0a1a19ab73b7acb/android/README.md). A Pixel uses the app's LiteRT GPU backend; Qualcomm QNN is for Snapdragon devices.
+
+## Repository and comma installation
+
+The source of record is **[ryanafdahl/Clarity-Pilot](https://github.com/ryanafdahl/Clarity-Pilot), branch `main`**. For a development checkout:
+
+```sh
+git clone --recurse-submodules --branch main https://github.com/ryanafdahl/Clarity-Pilot.git
+cd Clarity-Pilot
+```
+
+Continue with the [development environment guide](tools/README.md), using this checkout in place of its upstream clone example. Cloning on a development computer does not install the software on the comma.
+
+For this deployment, the Custom Software installation address is **`installer.comma.ai/ryanafdahl/Clarity-Pilot`**. It installs the separately published device branch, not this source repository directly. On a fresh comma, follow its Custom Software setup and enter that address. For an already configured device, preserve settings and logs before using the device’s supported reinstall procedure.
+
+The installation address, `installer.comma.ai/ryanafdahl/Clarity-Pilot`, selects the **`Clarity-Pilot` branch of `ryanafdahl/openpilot`**. The [comma fork installer](https://github.com/commaai/openpilot/wiki/Forks#url-installers) uses an owner and branch and assumes the repository is named `openpilot`. The comma runs that separate deployment repository. Use `Clarity-Pilot` for the current deployment. A dedicated Custom Software installer for this repository's `main` has not been verified, and pushing here does not update the comma automatically.
+
+Before changing a device installation, preserve its settings and needed logs and confirm its repository, branch, and commit. Once the intended build is installed, complete normal vehicle setup and calibration, leave it online while parked for model downloads, and confirm the small model works before pairing the accelerator.
+
+## Jetson setup
+
+The current installed release is **[JetLink v0.8.0](https://github.com/zoompilot/jetlink/releases/tag/v0.8.0)**. Its [Jetson guide](https://github.com/zoompilot/jetlink/blob/v0.8.0/docs/jetson.md) lists JetPack 7.2.1 as tested and 6.2 as untested for this release. This project's device already runs 7.2.1; the previous README's JetPack 6.1 / TensorRT 10.3 / fixed 25 W instructions describe an older setup.
+
+With the Jetson on a stable supply and connected to the internet, run the release-pinned installer on the Jetson:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/zoompilot/jetlink/v0.8.0/install.sh -o install-v0.8.0.sh && \
+  bash install-v0.8.0.sh --ref v0.8.0
+```
+
+For this car, retain **MAXN SUPER** and choose **switched power**. Keep the existing model cache when updating. Follow any reboot instruction from the installer, then check:
+
+```sh
+jetlink status
+sudo nvpmodel -q
+sudo systemctl status jetlink-server.service --no-pager
+```
+
+While parked, connect **Jetson USB-A → comma USB-C** with a USB 3 data cable. On the comma, open **Settings → Models**, enable **Accelerator Link**, and choose the large model. The toggle is available before the Jetson is detected. Keep both devices powered and the comma online until download and engine preparation finish.
+
+A TensorRT or model change can require a new engine even when the ONNX download is already cached. The October 3 V2 engine build took 32.7 seconds; build time varies. For manual preparation, follow the [model preparation guide](https://github.com/zoompilot/jetlink/blob/v0.8.0/docs/models.md): stop the server before preparing an engine in a separate process, then start it again.
+
+`jetlink update` retains the saved release ref. Choose an explicit `--ref v0.8.0` when updating an older pinned installation. Version 0.8.0 uses a native service instead of Docker. Preserve the prior settings and engine cache for rollback. The [update record](docs/JETSON_UPDATE_2026-09-26.md) contains the installed image digest, backup details, and compatibility checks.
+
+## Pixel setup
+
+The [Android directory](android/README.md) contains the **exact APK installed on the Pixel**, its SHA-256, build provenance, and full install steps. [Download JetLink 0.8.0 APK](https://github.com/ryanafdahl/Clarity-Pilot/raw/refs/heads/main/android/jetlink-0.8.0-pixel.apk).
+
+Install with `adb install -r android/jetlink-0.8.0-pixel.apk`, open JetLink, and allow notifications. Use **GPU** on the Pixel. Download **Cinque Terre Model V2** in the app before pairing. Connect through a powered USB 3 hub and accept Android's USB permission request; the comma's Accelerator Link toggle must be enabled while parked. The Jetson and Pixel are alternative accelerators, not a combined inference system.
+
+The APK built successfully, passed 51 Android unit tests, and started its native server on Pixel 11 Pro XL / Android 17. Complete model preparation, one-minute and ten-minute benchmarks, parity verification, and a parked USB test before treating it as ready for use. The older experimental Pixel APKs are not the app included here.
+
+## October 3 sunnypilot sync
+
+All eight upstream master updates through [`a5f44653d`](https://github.com/sunnypilot/sunnypilot/commit/a5f44653d7f43ad57fef2f546f3916ec4cbf3c56) are integrated: model-loader/tinygrad compatibility and tests, cache clearing on mici, workflow cleanup and fork model builds, camera-offset geometry, modelDataV2SP validity, the LagdToggleDelay UI freeze fix, and model-list refresh feedback. JetLink controls and fallback remain intact.
+
+The source repository imports upstream changes as commits because its initial snapshot has separate history. The comma deployment branch merges upstream history. The staged source suite ran 421 tests (416 passed, five skipped); the staged deployment suite ran 379 (374 passed, five skipped). Both successfully loaded the comma's selected CD210 cached small model with the new tinygrad pin. Hidden-window GUI tests and the overlay's Git-dependent default-model hash test were excluded from these counts. The subsequent [October 3 drive](docs/JETLINK_DRIVE_2026-10-03.md) exercised this deployment over USB; longer-drive and failure-recovery validation remain open.
+
+## What has been verified
+
+The [October 3 full-rate analysis](docs/JETLINK_DRIVE_2026-10-03.md) covers a **331.80-second** recording on the updated Clarity Pilot deployment. The Jetson joined at **+28.21 s**, followed by **6,071 consecutive large-model outputs** with no recorded fallback or large-model frame-ID gap. Comma-reported model execution averaged **25.77 ms**, with **27.24 ms p95**. Its maximum, **52.36 ms**, was the join frame. These are model-run timings, not pure GPU or complete vehicle-control latency.
+
+The first small-model output took **1.28 s** and was invalid; startup skipped 26 camera frame IDs. Both startup outliers preceded engagement. No lag or communication event was recorded. The comma retained 290 Jetson telemetry samples, but the drive's independent server journal could not be recovered after the Jetson was moved to the desk. Its desk boot loaded V2 at 11.26 s; that is not a measurement of the drive's boot time. See the report for the timeline, other warnings, and limits.
+
+The same report records removal of the retired USB Wi-Fi dongle's `rtl8821au` DKMS driver. Ethernet and JetLink stayed active; a rollback archive was retained on the Jetson. The Pixel still requires its own inference and USB qualification.
+
+The following results describe older builds:
+
+The [September 26 short drive](docs/JETLINK_DRIVE_2026-09-26.md) recorded 3 minutes 50 seconds, including about 3 minutes on the large model. Sampled large-model execution averaged **31.70 ms**, with **33.79 ms p95**. The largest sample, **204.81 ms**, occurred at the initial large-model join. These are sampled inference timings, not complete camera-to-control latency or a guarantee that every frame met its deadline.
+
+A later desk boot exposed a CDI/nvpmodel startup-order problem. The applied fix passed **one software reboot**, with the engine ready **20.61 seconds after boot**. The drive preceded that fix. A new car power-cycle test and complete full-rate logs for the short drive remain pending; the final USB disconnect occurred about two seconds before modeld stopped, and its precise cause is unconfirmed.
+
+The drive used comma commit `d57c4b533558bb2314f542a2ea78c3271b265eda` from the separate deployment repository. These results describe that device configuration, not a road validation of every change on this repository's `main`.
+
+For the next parked check, confirm the server and engine are ready, the comma shows a green accelerator indicator, and telemetry is live. `modelV2.big=true` in full-rate logs or `drivingModelData.big=true` in qlogs confirms large-model output. Keep logs from both devices when investigating a join, fallback, or disconnect; the icon alone cannot establish continuous operation.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| JetLink is inactive after boot | Inspect `jetlink status` and `jetlink-server.service` first. The CDI/nvpmodel notes below describe the older Docker installation; current 0.8.0 runs natively. |
+| Accelerator never becomes ready | Check the USB-A-to-USB-C data cable, Accelerator Link toggle, server status, selected model, and engine-preparation log. |
+| Delay or lag at startup | Separate small-model initialization, Jetson boot, engine loading, and the first USB inference exchange. Startup outliers do not establish steady-state GPU slowdown. |
+| USB link drops | Compare both devices' logs with the timing of power changes; inspect the cable, USB negotiation, supply, and cooling. Preserve fallback protections. |
+| Model preparation fails | Check runtime compatibility and available cache space. Avoid concurrent engine builds against the same cache. |
+| Repeated catalog DNS warnings | Check offroad internet access. The catalog manager retries both sources every second when its cache is expired; cached models may remain usable. Retry backoff has not yet been added. |
+
+The tracked [CDI dependency drop-in](scripts/jetson/nvidia-cdi-refresh.service.d/20-after-nvpmodel.conf) makes CDI wait for successful power initialization. It was applied to this Jetson, whose nvpmodel unit has `RemainAfterExit=yes`. **Do not copy it blindly onto a stock unit with `RemainAfterExit=no`.** The [boot-order investigation](docs/JETLINK_DRIVE_2026-09-26.md#jetson-boot-failure-and-applied-fix) explains the prerequisite, validation, and rollback.
+
+For a bounded startup capture on the Jetson:
+
+```sh
+sudo journalctl -b -u nvpmodel.service -u nvidia-cdi-refresh.service -u jetlink-server.service -n 150 --no-pager
+```
+
+## Logs and reports
+
+| Report | Covers |
+| --- | --- |
+| [October 3 V2 drive and Wi-Fi retirement](docs/JETLINK_DRIVE_2026-10-03.md) | Full-rate frame timings, startup retry, telemetry, journal limits, and external USB Wi-Fi driver removal |
+| [Comma drive analysis](docs/COMMA_LOG_ANALYSIS_2026-09-26.md) | Two earlier drives, first-frame delays, and the isolated selfdrive-loop lag investigation |
+| [Jetson v0.4.0 update](docs/JETSON_UPDATE_2026-09-26.md) | Release pin, runtime, power configuration, backups, and engine rebuild |
+| [Post-update drive and boot repair](docs/JETLINK_DRIVE_2026-09-26.md) | Short-drive results, DNS retries, startup fix, and remaining validation |
+| [Earlier device review](docs/DEVICE_LOG_ANALYSIS_2026-09.md) | Historical platform observations and storage concerns; predates the update |
+
+From a development checkout, summarize a saved JetLink server log with:
+
+```sh
+python tools/analyze_jetlink_log.py jetlink-server.log
+```
+
+For qlogs, use the openpilot Python environment with its dependencies available:
+
+```sh
+python tools/analyze_comma_routes.py '/path/to/extracted/*/qlog.zst'
+```
+
+The server analyzer summarizes logged slow-frame warnings, not every inference. The route analyzer reports sampled model metrics, mode transitions, and event-message counts. Raw routes and device logs can contain location, video, CAN, and identifiers; keep them in ignored `diagnostics/` rather than committing them.
+
+## Vehicle scope and credits
+
+Vehicle support, including Honda Clarity and modified-EPS behavior, depends on the exact fingerprint and firmware. This repository does not perform an EPS torque modification or establish that a modified EPS is supported. See the project's [safety documentation](docs/SAFETY.md) and [limitations](docs/LIMITATIONS.md).
+
+Built on [sunnypilot](https://github.com/sunnypilot/sunnypilot), [comma.ai openpilot](https://github.com/commaai/openpilot), and [Zoompilot JetLink](https://github.com/zoompilot/jetlink), including the accelerator integration from sunnypilot [PR #2001](https://github.com/sunnypilot/sunnypilot/pull/2001). See [LICENSE](LICENSE) and [LICENSE.md](LICENSE.md) for the applicable notices.

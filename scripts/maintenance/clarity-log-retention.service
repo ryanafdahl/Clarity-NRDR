@@ -1,0 +1,12 @@
+[Unit]
+Description=Clarity Pilot offroad recording retention
+After=local-fs.target
+ConditionPathExists=/data/media/0/realdata
+
+[Service]
+Type=oneshot
+User=comma
+ExecStart=/usr/bin/python3 /data/maintenance/comma_log_retention.py --apply
+Nice=19
+IOSchedulingClass=idle
+

@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Clarity Pilot recording retention hourly
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1h
+Unit=clarity-log-retention.service
+
+[Install]
+WantedBy=timers.target
