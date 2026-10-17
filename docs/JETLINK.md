@@ -3,8 +3,11 @@
 This repository pins JetLink **v0.8.7**, commit
 `d26001b4161f33bab28d806de6a99b96325a429b`, protocol v3, openpilot integration
 API 3. The matching [release](https://github.com/zoompilot/jetlink/releases/tag/v0.8.7)
-provides Jetson/Linux servers and companion apps. This update changes repository
-source only; no installed device or physical connection was validated.
+provides Jetson/Linux servers and companion apps. The comma 4 deployment and
+October 17 USB 3 drive are now recorded in the
+[PTC drive review](CLARITY_PTC_DRIVE_2026-10-17.md). That drive identifies the
+Orin/TensorRT peer, 17,681 consecutive large-model outputs and no fallback after
+joining. The startup enumeration retry and qualification limits remain documented.
 
 ## Install or update the comma checkout
 

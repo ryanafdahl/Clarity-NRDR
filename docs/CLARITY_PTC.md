@@ -143,9 +143,15 @@ Dependencies for this focused suite: Python 3.12, numpy, pycapnp==2.1.0,
 pycryptodome, tqdm, pytest, cffi and a C compiler. CI runs the same suite.
 The remaining submodules and model LFS assets are inherited from Clarity-Pilot.
 
-This is a source-tested experimental port. No installed-EPS readback,
-comma hardware build, recorded-drive replay or vehicle validation was available
-for this shipment. Software tests do not qualify the physical steering response.
+The initial shipment was source-tested only. On October 17 the comma 4 build,
+native PTC menu and first owner-reported PTC firmware drive were reviewed. The
+[full-rate drive report](CLARITY_PTC_DRIVE_2026-10-17.md) confirms the PTC flag,
+linear command map, matched PID, Orin USB 3 inference and observed steering-command
+release. It includes the startup retry, stock warning samples and remaining limits.
+
+No installed-EPS calibration readback was performed. This remains an experimental
+port: one uncontrolled drive does not qualify physical steering response,
+highway behavior, oscillation, transition-edge takeover latency or failure recovery.
 
 Before vehicle use, establish the exact rack and calibration, build on the
 target comma, check restart/profile selection and faults while parked, and

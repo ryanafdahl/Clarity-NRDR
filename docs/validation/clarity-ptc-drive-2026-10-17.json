@@ -1,0 +1,640 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-17",
+  "scope": "Two retained complete full-rate recordings; technical aggregates only.",
+  "firmware": {
+    "filename": "ClarityMax-20260928-Pminus5-A280Flat-KFF45-Tracker3200-Norm1650-3840.rwd",
+    "local_file_sha256": "9e2e98857a6734f4631205cb9550bf7cb61720da566a4c117b9187a8ddf25d61",
+    "installation_evidence": "Owner reports flashing this file; no EPS calibration readback performed."
+  },
+  "log_integrity": {
+    "recordings": 2,
+    "rlog_segments": 25,
+    "qlog_segments": 25,
+    "sha256_verified_files": 50,
+    "parser_errors": 0,
+    "parser_warnings": 0
+  },
+  "software": {
+    "nrdr_reference": "b3366b5b56512805be8f0bf832b4981bfd958072",
+    "jetlink_pin": "d26001b4161f33bab28d806de6a99b96325a429b",
+    "jetlink_latest_stable_checked": "v0.8.7",
+    "protocol": 3,
+    "adapter_api": 3
+  },
+  "recordings": [
+    {
+      "label": "preceding legacy 3x drive",
+      "segments": 9,
+      "span_seconds": 538.5274601479998,
+      "software_commits": [
+        "8d105103a999b6f5219de094116aee2ad532db5e"
+      ],
+      "ptc_enabled_in_init_data": [
+        "0"
+      ],
+      "ptc_profile_active": false,
+      "lateral_tuning": {
+        "pid": {
+          "kpBP": [
+            0.0
+          ],
+          "kpV": [
+            0.1574999988079071
+          ],
+          "kiBP": [
+            0.0
+          ],
+          "kiV": [
+            0.051750000566244125
+          ],
+          "kf": 3.9999998989515007e-05
+        }
+      },
+      "command_map": {
+        "torqueBP": [
+          0,
+          5760,
+          15360
+        ],
+        "torqueV": [
+          0,
+          2560,
+          3840
+        ]
+      },
+      "model_outputs": {
+        "small": 254,
+        "large": 10250
+      },
+      "model_transitions": [
+        {
+          "seconds": 13.31477105199997,
+          "mode": "small"
+        },
+        {
+          "seconds": 26.031279272999882,
+          "mode": "large"
+        }
+      ],
+      "metrics": {
+        "comma_cpu_temperature_c": {
+          "n": 8584,
+          "min": 52.400001525878906,
+          "mean": 63.556744447514376,
+          "p50": 63.900001525878906,
+          "p95": 66.5,
+          "p99": 67.19999694824219,
+          "max": 68.19999694824219
+        },
+        "abs_can_torque_command": {
+          "n": 52851,
+          "min": 0.0,
+          "mean": 748.6611227791338,
+          "p50": 293.0,
+          "p95": 3840.0,
+          "p99": 3840.0,
+          "max": 3840.0
+        },
+        "abs_normalized_torque_command": {
+          "n": 52851,
+          "min": 0.0,
+          "mean": 0.15055342081463235,
+          "p50": 0.04297738894820213,
+          "p95": 1.0,
+          "p99": 1.0,
+          "max": 1.0
+        },
+        "small_execution_ms": {
+          "n": 254,
+          "min": 26.080794632434845,
+          "mean": 31.997126453798117,
+          "p50": 26.33316908031702,
+          "p95": 27.864456176757812,
+          "p99": 28.70141714811325,
+          "max": 1427.484393119812
+        },
+        "small_camera_to_publication_ms": {
+          "n": 254,
+          "min": 50.825917,
+          "mean": 57.22759166929134,
+          "p50": 51.281516499999995,
+          "p95": 52.752981,
+          "p99": 55.949626,
+          "max": 1496.652086
+        },
+        "small_frame_drop_percent": {
+          "n": 254,
+          "min": 0.0,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "small_publish_interval_ms": {
+          "n": 253,
+          "min": 31.866180999941207,
+          "mean": 50.024627454545026,
+          "p50": 50.04011400001218,
+          "p95": 50.66909199990732,
+          "p99": 51.16818299984516,
+          "max": 77.43144699998084
+        },
+        "small_frame_id_increment": {
+          "n": 253,
+          "min": 1,
+          "mean": 1.1146245059288538,
+          "p50": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 30
+        },
+        "large_execution_ms": {
+          "n": 10250,
+          "min": 22.64351397752762,
+          "mean": 23.5777211062065,
+          "p50": 23.444042541086674,
+          "p95": 25.043543428182602,
+          "p99": 25.914741680026054,
+          "max": 38.32268714904785
+        },
+        "large_camera_to_publication_ms": {
+          "n": 10250,
+          "min": 47.342152,
+          "mean": 48.54804688360975,
+          "p50": 48.3585695,
+          "p95": 50.121519,
+          "p99": 51.17492,
+          "max": 62.946646
+        },
+        "large_frame_drop_percent": {
+          "n": 10250,
+          "min": 0.0,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "large_publish_interval_ms": {
+          "n": 10249,
+          "min": 36.11128800002916,
+          "mean": 49.99887678671091,
+          "p50": 50.007670000013604,
+          "p95": 51.67071300002135,
+          "p99": 52.66181700017114,
+          "max": 56.05576800007839
+        },
+        "large_frame_id_increment": {
+          "n": 10249,
+          "min": 1,
+          "mean": 1.0,
+          "p50": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "abs_tracking_error_deg": {
+          "n": 40669,
+          "min": 2.61356162809534e-05,
+          "mean": 2.3287141638106776,
+          "p50": 0.25258973240852356,
+          "p95": 4.398329257965088,
+          "p99": 62.13751220703125,
+          "max": 319.300537109375
+        },
+        "abs_pid_output": {
+          "n": 40669,
+          "min": 5.621788545795425e-07,
+          "mean": 0.1177204585005872,
+          "p50": 0.04901165887713432,
+          "p95": 0.6901331543922424,
+          "p99": 1.0,
+          "max": 1.0
+        },
+        "speed_mps_assisted": {
+          "n": 40669,
+          "min": 0.300014853477478,
+          "mean": 12.51412190218933,
+          "p50": 13.934803009033203,
+          "p95": 17.90613555908203,
+          "p99": 18.610427856445312,
+          "max": 20.22922134399414
+        },
+        "below_10_mps_abs_tracking_error_deg": {
+          "n": 7643,
+          "min": 0.0007416007574647665,
+          "mean": 10.748509277854374,
+          "p50": 1.130661129951477,
+          "p95": 65.65930938720703,
+          "p99": 137.0746612548828,
+          "max": 319.300537109375
+        },
+        "10_to_20_mps_abs_tracking_error_deg": {
+          "n": 32890,
+          "min": 2.61356162809534e-05,
+          "mean": 0.3805385028119121,
+          "p50": 0.20834272354841232,
+          "p95": 0.7960348129272461,
+          "p99": 2.090627908706665,
+          "max": 33.66447448730469
+        },
+        "above_20_mps_abs_tracking_error_deg": {
+          "n": 136,
+          "min": 0.006128860171884298,
+          "mean": 0.29197470508584317,
+          "p50": 0.30939312279224396,
+          "p95": 0.5466358661651611,
+          "p99": 0.5986061692237854,
+          "max": 0.5986214280128479
+        }
+      },
+      "totals": {
+        "thermal_ok": 1073,
+        "car_state_fault_samples": 1123,
+        "car_state_invalid_samples": 20,
+        "ptc_flag_records": 0,
+        "car_params_sp_records": 11,
+        "sustained_inactive_output_samples": 7677,
+        "sustained_inactive_nonzero_outputs": 167,
+        "small_invalid_outputs": 1,
+        "small_execution_over_50_ms": 1,
+        "small_camera_to_publication_over_50_ms": 254,
+        "accelerator_joining": 253,
+        "accelerator_ready": 1,
+        "large_invalid_outputs": 0,
+        "large_execution_over_50_ms": 0,
+        "large_camera_to_publication_over_50_ms": 627,
+        "accelerator_running": 10250,
+        "sustained_override_output_samples": 5558,
+        "sustained_override_nonzero_outputs": 4312,
+        "assisted_seconds": 408.4790632260015,
+        "saturated_pid_seconds": 0.3116976080000313,
+        "pid_output_nonfinite": 0,
+        "driver_override_rising_edges": 70
+      },
+      "event_message_counts": {
+        "selfdriveInitializing": 7,
+        "wrongGear": 69,
+        "parkBrake": 20,
+        "bigModelLoading": 3,
+        "preEnableStandstill": 5,
+        "reverseGear": 45,
+        "steerOverride": 168,
+        "gasPressedOverride": 173,
+        "preLaneChangeLeft": 4,
+        "laneChange": 1
+      },
+      "notable_events": [],
+      "expected_process_missing_samples": 0,
+      "parse_errors": 0,
+      "parse_warnings": 0,
+      "eps_status_counts": {
+        "LOW_SPEED_LOCKOUT": 209,
+        "NORMAL": 52482,
+        "NO_TORQUE_ALERT_1": 1129,
+        "steady_fault_steering_commands": 1025,
+        "steady_fault_nonzero_torque": 0,
+        "steady_fault_request_asserted": 0,
+        "NO_TORQUE_ALERT_2": 17
+      },
+      "temporary_eps_status_windows": 18,
+      "temporary_eps_status_samples": 1123,
+      "all_temporary_eps_samples_with_driver_input": true,
+      "jetson_temperature_c": {
+        "min": 52,
+        "max": 62.4
+      }
+    },
+    {
+      "label": "first reviewed PTC drive",
+      "segments": 16,
+      "span_seconds": 910.217093611,
+      "software_commits": [
+        "9c17798b15c62ffc2310d51734b5794cf7bc2bdc"
+      ],
+      "ptc_enabled_in_init_data": [
+        "1"
+      ],
+      "ptc_profile_active": true,
+      "lateral_tuning": {
+        "pid": {
+          "kpBP": [
+            0.0
+          ],
+          "kpV": [
+            0.029999999329447746
+          ],
+          "kiBP": [
+            0.0
+          ],
+          "kiV": [
+            0.009999999776482582
+          ],
+          "kf": 1.2000000424450263e-05
+        }
+      },
+      "command_map": {
+        "torqueBP": [
+          0,
+          3840
+        ],
+        "torqueV": [
+          0,
+          3840
+        ]
+      },
+      "model_outputs": {
+        "small": 304,
+        "large": 17681
+      },
+      "model_transitions": [
+        {
+          "seconds": 10.906391715000012,
+          "mode": "small"
+        },
+        {
+          "seconds": 26.104461865000005,
+          "mode": "large"
+        }
+      ],
+      "metrics": {
+        "comma_cpu_temperature_c": {
+          "n": 14496,
+          "min": 57.0,
+          "mean": 66.73451235804863,
+          "p50": 66.9000015258789,
+          "p95": 69.5,
+          "p99": 70.5,
+          "max": 71.5
+        },
+        "abs_can_torque_command": {
+          "n": 89892,
+          "min": 0.0,
+          "mean": 176.8555711298002,
+          "p50": 110.0,
+          "p95": 640.0,
+          "p99": 1094.0,
+          "max": 3807.0
+        },
+        "abs_normalized_torque_command": {
+          "n": 89892,
+          "min": 0.0,
+          "mean": 0.04616311766750971,
+          "p50": 0.02866744063794613,
+          "p95": 0.16686682403087616,
+          "p99": 0.28509488701820374,
+          "max": 0.9914814233779907
+        },
+        "small_execution_ms": {
+          "n": 304,
+          "min": 27.063697576522827,
+          "mean": 32.64149791855169,
+          "p50": 27.653437107801437,
+          "p95": 29.524166136980057,
+          "p99": 30.414948239922523,
+          "max": 1433.229684829712
+        },
+        "small_camera_to_publication_ms": {
+          "n": 304,
+          "min": 51.476094,
+          "mean": 57.678450644736834,
+          "p50": 52.4588545,
+          "p95": 54.572708,
+          "p99": 59.020104,
+          "max": 1509.089948
+        },
+        "small_frame_drop_percent": {
+          "n": 304,
+          "min": 0.0,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "small_publish_interval_ms": {
+          "n": 303,
+          "min": 32.48010400000112,
+          "mean": 49.98132750165013,
+          "p50": 49.97067700000457,
+          "p95": 51.92468799999972,
+          "p99": 52.704896000008716,
+          "max": 67.9963019999974
+        },
+        "small_frame_id_increment": {
+          "n": 303,
+          "min": 1,
+          "mean": 1.0957095709570956,
+          "p50": 1,
+          "p95": 1,
+          "p99": 1,
+          "max": 30
+        },
+        "large_execution_ms": {
+          "n": 17681,
+          "min": 22.54229038953781,
+          "mean": 23.409422364501612,
+          "p50": 23.348750546574593,
+          "p95": 24.770624935626984,
+          "p99": 25.378333404660225,
+          "max": 31.982865184545517
+        },
+        "large_camera_to_publication_ms": {
+          "n": 17681,
+          "min": 47.102344,
+          "mean": 48.267863362422936,
+          "p50": 48.166823,
+          "p95": 49.632656,
+          "p99": 50.452968,
+          "max": 56.445521
+        },
+        "large_frame_drop_percent": {
+          "n": 17681,
+          "min": 0.0,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p95": 0.0,
+          "p99": 0.0,
+          "max": 0.0
+        },
+        "large_publish_interval_ms": {
+          "n": 17680,
+          "min": 42.09458299999369,
+          "mean": 50.00160933529412,
+          "p50": 49.974270500015905,
+          "p95": 51.44812499997897,
+          "p99": 52.375571999988324,
+          "max": 57.509530999993785
+        },
+        "large_frame_id_increment": {
+          "n": 17680,
+          "min": 1,
+          "mean": 1.0,
+          "p50": 1.0,
+          "p95": 1,
+          "p99": 1,
+          "max": 1
+        },
+        "abs_tracking_error_deg": {
+          "n": 73830,
+          "min": 1.592120861459989e-05,
+          "mean": 2.09501511892771,
+          "p50": 0.9173565208911896,
+          "p95": 4.91363525390625,
+          "p99": 22.514814376831055,
+          "max": 270.6454162597656
+        },
+        "abs_pid_output": {
+          "n": 73830,
+          "min": 2.073713858408155e-07,
+          "mean": 0.057465780183757885,
+          "p50": 0.03761712834239006,
+          "p95": 0.19047147035598755,
+          "p99": 0.37442535161972046,
+          "max": 0.9914814233779907
+        },
+        "speed_mps_assisted": {
+          "n": 73830,
+          "min": 0.3005112409591675,
+          "mean": 11.644922712213557,
+          "p50": 12.441173076629639,
+          "p95": 17.51791000366211,
+          "p99": 17.758888244628906,
+          "max": 17.820051193237305
+        },
+        "below_10_mps_abs_tracking_error_deg": {
+          "n": 18611,
+          "min": 0.00012301378592383116,
+          "mean": 5.193651664878541,
+          "p50": 1.7901538610458374,
+          "p95": 15.526457786560059,
+          "p99": 72.24059295654297,
+          "max": 270.6454162597656
+        },
+        "10_to_20_mps_abs_tracking_error_deg": {
+          "n": 55219,
+          "min": 1.592120861459989e-05,
+          "mean": 1.050651317397604,
+          "p50": 0.7749736309051514,
+          "p95": 2.9223880767822266,
+          "p99": 4.878479957580566,
+          "max": 30.209611892700195
+        }
+      },
+      "totals": {
+        "thermal_ok": 1812,
+        "sustained_inactive_output_samples": 11706,
+        "sustained_inactive_nonzero_outputs": 0,
+        "car_state_fault_samples": 1173,
+        "car_state_invalid_samples": 10,
+        "ptc_flag_records": 18,
+        "car_params_sp_records": 18,
+        "small_invalid_outputs": 1,
+        "small_execution_over_50_ms": 1,
+        "small_camera_to_publication_over_50_ms": 304,
+        "accelerator_joining": 304,
+        "large_invalid_outputs": 0,
+        "large_execution_over_50_ms": 0,
+        "large_camera_to_publication_over_50_ms": 461,
+        "accelerator_running": 17681,
+        "sustained_override_output_samples": 5580,
+        "sustained_override_nonzero_outputs": 0,
+        "assisted_seconds": 741.5455637270004,
+        "saturated_pid_seconds": 0.0,
+        "pid_output_nonfinite": 0,
+        "driver_override_rising_edges": 118
+      },
+      "event_message_counts": {
+        "selfdriveInitializing": 6,
+        "wrongGear": 83,
+        "seatbeltNotLatched": 3,
+        "parkBrake": 20,
+        "bigModelLoading": 2,
+        "preEnableStandstill": 9,
+        "reverseGear": 60,
+        "steerOverride": 207,
+        "gasPressedOverride": 216,
+        "preLaneChangeLeft": 4,
+        "laneChange": 11,
+        "stockFcw": 4
+      },
+      "notable_events": [
+        {
+          "event": "stockFcw",
+          "lat_active_samples": 1,
+          "samples": 1,
+          "model": "large",
+          "model_execution_ms": 22.81348966062069
+        },
+        {
+          "event": "stockFcw",
+          "lat_active_samples": 1,
+          "samples": 1,
+          "model": "large",
+          "model_execution_ms": 22.996407002210617
+        },
+        {
+          "event": "stockFcw",
+          "lat_active_samples": 1,
+          "samples": 1,
+          "model": "large",
+          "model_execution_ms": 22.888021543622017
+        },
+        {
+          "event": "stockFcw",
+          "lat_active_samples": 1,
+          "samples": 1,
+          "model": "large",
+          "model_execution_ms": 22.9291133582592
+        }
+      ],
+      "expected_process_missing_samples": 0,
+      "parse_errors": 0,
+      "parse_warnings": 0,
+      "eps_status_counts": {
+        "LOW_SPEED_LOCKOUT": 225,
+        "NORMAL": 89555,
+        "NO_TORQUE_ALERT_1": 1177,
+        "steady_fault_steering_commands": 1098,
+        "steady_fault_nonzero_torque": 0,
+        "steady_fault_request_asserted": 0,
+        "NO_TORQUE_ALERT_2": 44
+      },
+      "temporary_eps_status_windows": 14,
+      "temporary_eps_status_samples": 1173,
+      "all_temporary_eps_samples_with_driver_input": true,
+      "jetson_temperature_c": {
+        "min": 52.6,
+        "max": 63.5
+      }
+    }
+  ],
+  "ptc_steering_can_checks": {
+    "decoded_steering_commands": 89391,
+    "commands_over_3840": 0,
+    "stable_lateral_inactive_commands": 11205,
+    "inactive_nonzero_torque": 0,
+    "inactive_request_asserted": 0,
+    "stable_driver_override_commands": 5536,
+    "override_nonzero_torque": 0,
+    "override_request_asserted": 0
+  },
+  "first_small_model_frame": [
+    {
+      "seconds": 10.906391715000012,
+      "large": false,
+      "valid": false,
+      "execution_ms": 1433.229684829712,
+      "lat_active": false
+    }
+  ],
+  "limitations": [
+    "One uncontrolled PTC drive; no matched-road comparison or firmware readback.",
+    "Sustained-command checks require state fresher than 25 ms and a steady state longer than 50 ms; transition-edge latency is not established.",
+    "No highway-speed PTC qualification; assisted speed did not exceed 17.83 m/s.",
+    "Steering error includes low-speed maneuvers and re-entry after manual steering; no physical-torque or oscillation qualification.",
+    "Jetson was powered off after the drive; a paired server boot journal and a new parked test were unavailable."
+  ]
+}
