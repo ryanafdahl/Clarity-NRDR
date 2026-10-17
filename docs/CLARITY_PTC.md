@@ -74,9 +74,12 @@ already have been observed before the setting can be enabled in the UI.
 Activation requires all of:
 
 1. Honda Clarity fingerprint and Honda brand.
-2. At least one EPS identity, with every observed EPS identity equal to
+2. At least one fingerprinting EPS identity, with every such identity equal to
    `39990-TRW,A020` or `39990,TRW,A020` (optional trailing NUL padding).
 3. Explicit `HondaClarityPtcFirmware` confirmation.
+
+Logging-only diagnostic responses are excluded, matching opendbc fingerprinting.
+They cannot enable PTC on their own. Conflicting firmware identities still block it.
 
 The comma marker is shared with old torque modifications. **The setting is a
 human confirmation, not cryptographic detection of the installed calibration.**

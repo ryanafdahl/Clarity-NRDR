@@ -17,7 +17,7 @@ PTC_FIRMWARE_SHA256 = "d4fe903bcf347495f4321be65a3c650c8c931f1650c3bef6443721da0
 def compatible_clarity_eps(CP) -> bool:
   if CP.brand != "honda" or CP.carFingerprint != CAR.HONDA_CLARITY:
     return False
-  versions = [bytes(fw.fwVersion).rstrip(b"\0") for fw in CP.carFw if fw.ecu == "eps"]
+  versions = [bytes(fw.fwVersion).rstrip(b"\0") for fw in CP.carFw if fw.ecu == "eps" and not fw.logging]
   return bool(versions) and all(v in (b"39990-TRW,A020", b"39990,TRW,A020") for v in versions)
 
 

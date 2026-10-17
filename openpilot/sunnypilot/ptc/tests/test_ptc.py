@@ -56,11 +56,23 @@ def test_firmware_gate_preserves_original(version, confirmed):
   assert sp.flags == flags
 
 
+def test_logging_only_eps_response_does_not_conflict_with_firmware_identity():
+  cp, sp = params(b"39990,TRW,A020\0\0")
+  diagnostic = structs.CarParams.CarFw(ecu="eps", fwVersion=b"\x0c BK9L174094C                  ",
+                                      request=[b"\x22\xf1\x12"], logging=True)
+  cp.carFw = [fw.to_dict() for fw in cp.carFw] + [diagnostic.to_dict()]
+  assert configure_clarity_ptc(cp, sp, {PTC_PARAM: True})
+  assert is_clarity_ptc(cp, sp)
+  cp.carFw = [diagnostic]
+  assert not configure_clarity_ptc(cp, sp, {PTC_PARAM: True})
+  assert not is_clarity_ptc(cp, sp)
+
+
 def test_non_clarity_and_conflicting_firmware_rejected():
   cp, sp = params(b"39990-TBA,A030\0\0", CAR.HONDA_CIVIC)
   assert not configure_clarity_ptc(cp, sp, {PTC_PARAM: True})
   cp, sp = params()
-  cp.carFw = list(cp.carFw) + [structs.CarParams.CarFw(ecu="eps", fwVersion=b"39990-TRW-A020\0\0")]
+  cp.carFw = [fw.to_dict() for fw in cp.carFw] + [structs.CarParams.CarFw(ecu="eps", fwVersion=b"39990-TRW-A020\0\0").to_dict()]
   assert not configure_clarity_ptc(cp, sp, {PTC_PARAM: True})
 
 
