@@ -16,13 +16,55 @@ PTC steering profile for Honda Clarity TRW-A020. It does not alter Clarity-Pilot
 
 ## Firmware selection
 
-The supported image is NRDR's
+The original supported image is NRDR's
 [`ClarityMax-PTM.rwd`](https://github.com/nrdr/openpilot/blob/b3366b5b56512805be8f0bf832b4981bfd958072/openpilot/nrdr/tools/eps/rwd/39990-TRW-A020%20(Honda%20Clarity)/Proper%20Torque%20Mod/ClarityMax-PTM.rwd),
 with SHA-256:
 
 ```text
 d4fe903bcf347495f4321be65a3c650c8c931f1650c3bef6443721da0dd80f7d
 ```
+
+Also supported by the same host profile:
+`ClarityMax-20260928-Pminus5-A280Flat-KFF45-Tracker3200-Norm1650-3840.rwd`,
+SHA-256:
+
+```text
+9e2e98857a6734f4631205cb9550bf7cb61720da566a4c117b9187a8ddf25d61
+```
+
+Identify a local file before confirming the installed calibration (from the repo root):
+
+```bash
+python openpilot/sunnypilot/ptc/firmware.py /path/to/image.rwd
+```
+
+This offline checker uses file contents, not the filename. Unknown files return
+an error. It neither flashes nor identifies the image currently installed in EPS.
+Both reviewed images use the existing firmware setting; no separate selector is
+needed because the host profile is the same. Do not change host PID gains based
+on the firmware filename: those labels describe EPS-side calibration.
+
+### 20260928 image comparison
+
+Offline comparison of the supplied file against the original image found:
+
+- Both files are 311421 bytes, with identical RWD headers and flash block
+  `0x4000..0x50000` (end exclusive). Container and both payload checksums pass.
+- The modified `39990-TRW,A020` payload identity is unchanged. Header target IDs
+  are compatibility metadata, not evidence of the installed rack or query result.
+- Table-A Y at flash address `0x1306c` and X at `0x130a8` exactly match the
+  existing TRW-A020 geometry. The remaining command-path bytes are unchanged.
+- Exactly 22 decrypted bytes differ. At flash addresses `0x1396e` and `0x13a16`,
+  each pair of big-endian 16-bit values changes from `(205,154)` to `(256,256)`.
+  At `0x13bdc`, the nine-value row changes from
+  `(123,156,194,232,258,270,277,279,279)` to
+  `(117,148,184,220,245,257,263,265,265)`.
+  The other differences are checksum words at `0x4ff80` and `0x4fffe`.
+
+These observations establish the shared host interface, not the physical effect
+of the changed EPS calibration. They do not independently establish the meaning
+of every filename label. The existing linear 3840 map, geometry and host PID
+remain in use; vehicle response has not been qualified for this image.
 
 PTC is **off by default**. After confirming that this exact calibration is
 installed, use **Vehicle settings → Honda → Clarity PTC Firmware Installed**

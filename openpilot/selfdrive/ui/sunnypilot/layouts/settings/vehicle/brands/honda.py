@@ -16,7 +16,8 @@ class HondaSettings(BrandSettings):
     super().__init__()
     self.ptc_toggle = toggle_item_sp(
       tr("Clarity PTC Firmware Installed"),
-      tr("Enable only after installing NRDR ClarityMax-PTM on a compatible TRW-A020 EPS. " +
+      tr("Enable only after installing ClarityMax-PTM or the reviewed ClarityMax 20260928 " +
+         "Pminus5/A280Flat/KFF45/Tracker3200/Norm1650-3840 image on a compatible TRW-A020 EPS. " +
          "Stock and older torque mods need their original tuning. Restart the device after changing this setting."),
       param="HondaClarityPtcFirmware",
     )
