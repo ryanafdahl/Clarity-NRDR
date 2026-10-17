@@ -150,6 +150,10 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     // jetlink backend. Readiness must survive a reboot, or every ignition cycle
     // would rebuild a multi-minute TensorRT engine.
     {"JetlinkEnabled", {PERSISTENT | BACKUP, BOOL}},
+    {"JetlinkLink", {PERSISTENT | BACKUP, INT, "0"}},
+    {"JetlinkModelPointers", {PERSISTENT, JSON}},
+    // Direct-cable phone charging remains off unless explicitly selected.
+    {"JetlinkChargePhone", {PERSISTENT, BOOL, "0"}},
     {"JetlinkEndpoint", {PERSISTENT | BACKUP, STRING}},
     {"JetlinkModel", {PERSISTENT | BACKUP, STRING}},
     {"JetlinkEngineReady", {PERSISTENT, STRING}},

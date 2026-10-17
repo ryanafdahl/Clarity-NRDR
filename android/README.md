@@ -1,8 +1,22 @@
-# JetLink Android APK
+# JetLink Android
+
+For this checkout, use **[JetLink v0.8.7 Android APK](https://github.com/zoompilot/jetlink/releases/download/v0.8.7/Jetlink-0.8.7-Android.apk)**
+with the v0.8.7 comma client. Follow the matching
+[Android guide](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/android-app.md)
+and [Clarity-NRDR setup](../docs/JETLINK.md). No phone was updated or tested as
+part of this repository change.
+
+The locally signed 0.8.0 APK below is an archived build, not the current client
+match. A release from another signer may not install over it; retain app data
+and model cache when planning an update.
+
+---
+
+# Archived JetLink 0.8.0 APK
 
 [Download jetlink-0.8.0-pixel.apk](https://github.com/ryanafdahl/Clarity-Pilot/raw/refs/heads/main/android/jetlink-0.8.0-pixel.apk)
 
-This is the exact APK built and installed on the Pixel 11 Pro XL on October 3, 2026. It is the upstream JetLink app, not the earlier experimental Pixel benchmark app. It uses protocol v3 and matches this repository's JetLink client and the upgraded Jetson server.
+This is the exact APK built and installed on the Pixel 11 Pro XL on October 3, 2026. It is the upstream JetLink app, not the earlier experimental Pixel benchmark app. It uses protocol v3 and matched the October 3 deployment.
 
 | Field | Value |
 | --- | --- |

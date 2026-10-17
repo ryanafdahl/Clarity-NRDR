@@ -34,6 +34,7 @@ from openpilot.sunnypilot.selfdrive.car.intelligent_cruise_button_management.con
 from openpilot.sunnypilot.selfdrive.selfdrived.button_state_tracker import ButtonStateTracker
 from openpilot.sunnypilot.selfdrive.selfdrived.events import EventsSP
 from openpilot.sunnypilot.selfdrive.selfdrived.accelerator_events import AcceleratorEvents
+from openpilot.sunnypilot.selfdrive.selfdrived.model_startup import ModelStartup
 
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
@@ -89,6 +90,7 @@ class SelfdriveD(CruiseHelper):
     self.big_model_running = False
     self.big_model_ready_t = 0.
     self.accelerator_events = AcceleratorEvents()
+    self.model_startup = ModelStartup()
 
     # Setup sockets
     self.pm = messaging.PubMaster(['selfdriveState', 'onroadEvents'] + ['selfdriveStateSP', 'onroadEventsSP'])
@@ -157,7 +159,7 @@ class SelfdriveD(CruiseHelper):
     self.state_machine = StateMachine()
     self.rk = Ratekeeper(100, print_delay_threshold=None)
 
-    self.ignored_processes = {'mapd', }
+    self.ignored_processes = {'mapd', *AcceleratorEvents.OPTIONAL_PROCESSES}
 
     # Determine startup event
     is_remote = build_metadata.openpilot.comma_remote or build_metadata.openpilot.sunnypilot_remote
@@ -224,7 +226,7 @@ class SelfdriveD(CruiseHelper):
       self.big_model_active = True
     if not self.enabled and not model_unavailable:
       self.big_model_active = False
-    self.accelerator_events.update(self.sm, self.enabled, self.events, self.events_sp)
+    self.accelerator_events.update(self.sm, self.enabled or self.mads.enabled, self.events, self.events_sp)
 
     if self.sm.recv_frame['lateralManeuverPlan'] > 0:
       self.events.add(EventName.lateralManeuver)
@@ -242,6 +244,9 @@ class SelfdriveD(CruiseHelper):
     if not self.initialized:
       self.events.add(EventName.selfdriveInitializing)
       return
+
+    if self.model_startup.update(self.sm) and not self.big_model_loading:  # modeld's first load outlasts the 6 s initialization
+      self.events.add(EventName.bigModelLoading)
 
     # Check for user bookmark press
     if self.sm.updated['userBookmark']:
@@ -441,7 +446,9 @@ class SelfdriveD(CruiseHelper):
     has_disable_events = self.events.contains(ET.NO_ENTRY) and (self.events.contains(ET.SOFT_DISABLE) or self.events.contains(ET.IMMEDIATE_DISABLE))
     no_system_errors = (not has_disable_events) or (len(self.events) == num_events)
     warmup_sec = 5.
-    big_model_settling = self.big_model_loading or time.monotonic() < self.big_model_ready_t + warmup_sec
+    big_model_settling = (self.big_model_loading or time.monotonic() < self.big_model_ready_t + warmup_sec
+                          or self.accelerator_events.settling   # a jetlink switch, either way
+                          or self.model_startup.starting)
     if not self.sm.all_checks() and no_system_errors and not big_model_settling:  # the load holds modelV2 and friends back on purpose
       if not self.sm.all_alive():
         self.events.add(EventName.commIssue)
