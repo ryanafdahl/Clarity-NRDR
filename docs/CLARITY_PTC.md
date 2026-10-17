@@ -67,8 +67,14 @@ of every filename label. The existing linear 3840 map, geometry and host PID
 remain in use; vehicle response has not been qualified for this image.
 
 PTC is **off by default**. After confirming that this exact calibration is
-installed, use **Vehicle settings → Honda → Clarity PTC Firmware Installed**
-while offroad, then restart the device. A compatible modified EPS identity must
+installed, use the setting while offroad, then restart the device:
+
+- **comma 4:** Settings → vehicle → Clarity PTC. Enabling opens the firmware
+  confirmation pages; scroll through them and confirm the installed PTC image.
+- **comma 3X:** Vehicle settings → Clarity PTC Firmware Installed (Honda).
+
+Keep it off for stock firmware and the older 3x torque mod.
+A compatible modified EPS identity must
 already have been observed before the setting can be enabled in the UI.
 
 Activation requires all of:

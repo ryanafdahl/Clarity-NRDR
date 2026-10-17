@@ -21,4 +21,4 @@ jobs:
         run: |
           python -m pytest -q -o addopts= openpilot/sunnypilot/ptc/tests opendbc_repo/opendbc/sunnypilot/car/honda/test_honda.py opendbc_repo/opendbc/car/honda/tests/test_honda.py opendbc_repo/opendbc/safety/tests/test_honda.py
       - name: Check PTC implementation
-        run: ruff check openpilot/sunnypilot/ptc openpilot/selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/honda.py opendbc_repo/opendbc/sunnypilot/car/honda/ptc.py
+        run: ruff check openpilot/sunnypilot/ptc openpilot/selfdrive/ui/sunnypilot/layouts/settings/vehicle/brands/honda.py opendbc_repo/opendbc/sunnypilot/car/honda/ptc.py openpilot/selfdrive/ui/sunnypilot/mici/layouts/vehicle.py openpilot/selfdrive/ui/sunnypilot/mici/layouts/settings.py

@@ -491,3 +491,94 @@ class TestTheUsbPort(UITest):
 
 if __name__ == '__main__':
   unittest.main()
+
+class TestMiciClarityPtc(UITest):
+  def setUp(self):
+    super().setUp()
+    from opendbc.car import structs
+    from opendbc.car.honda.values import CAR
+    from openpilot.selfdrive.ui.ui_state import ui_state
+    saved = ui_state.CP, ui_state.started
+    self.addCleanup(lambda: self._restore(saved))
+    ui_state.started = False
+    ui_state.CP = structs.CarParams.new_message(
+      brand="honda", carFingerprint=CAR.HONDA_CLARITY,
+      carFw=[{"ecu": "eps", "fwVersion": b"39990,TRW,A020\0\0"},
+             {"ecu": "eps", "fwVersion": b"\x0c BK9L174094C", "logging": True}],
+    )
+    self.params.put_bool("HondaClarityPtcFirmware", False, block=True)
+
+  @staticmethod
+  def _restore(saved):
+    from openpilot.selfdrive.ui.ui_state import ui_state
+    ui_state.CP, ui_state.started = saved
+
+  def test_comma4_settings_opens_native_vehicle_panel(self):
+    import pyray as rl
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.settings import SettingsLayoutSP
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.vehicle import VehicleLayoutMici
+    from openpilot.system.ui.lib.application import gui_app
+    settings = SettingsLayoutSP()
+    vehicle = next(item for item in settings._scroller._items if getattr(item, 'text', None) == 'vehicle')
+    with mock.patch.object(gui_app, "push_widget") as push:
+      vehicle._click_callback()
+    panel = push.call_args.args[0]
+    assert isinstance(panel, VehicleLayoutMici)
+    assert panel.ptc_toggle in panel._scroller._items and panel.ptc_toggle.enabled
+    rl.begin_drawing()
+    panel.render(rl.Rectangle(0, 0, 536, 240))
+    rl.end_drawing()
+    assert not self.params.get_bool("HondaClarityPtcFirmware")
+
+  def test_enable_requires_firmware_confirmation(self):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.vehicle import VehicleLayoutMici, PtcFirmwareConfirmPage
+    from openpilot.system.ui.lib.application import gui_app, MousePos
+    panel = VehicleLayoutMici()
+    with mock.patch.object(gui_app, "push_widget") as push:
+      panel.ptc_toggle._handle_mouse_release(MousePos(0, 0))
+    page = push.call_args.args[0]
+    assert isinstance(page, PtcFirmwareConfirmPage)
+    assert not self.params.get_bool("HondaClarityPtcFirmware")
+    assert not panel.ptc_toggle._checked
+    # The native confirmation button opens a slider; its completed callback
+    # dismisses the firmware page and only then saves the confirmation.
+    with mock.patch.object(gui_app, "push_widget") as push:
+      page.confirm._click_callback()
+    slider = push.call_args.args[0]
+    with mock.patch.object(slider, "dismiss", side_effect=lambda callback: callback()), \
+         mock.patch.object(page, "dismiss", side_effect=lambda callback: callback()):
+      slider._on_confirm()
+    assert self.params.get_bool("HondaClarityPtcFirmware")
+    assert panel.ptc_toggle._checked
+
+  def test_pending_confirmation_cannot_enable_onroad_or_with_unknown_eps(self):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.vehicle import VehicleLayoutMici
+    from openpilot.selfdrive.ui.ui_state import ui_state
+    panel = VehicleLayoutMici()
+    ui_state.started = True
+    assert not panel.ptc_toggle.enabled
+    panel._confirm_ptc()
+    panel._on_ptc_toggle(True)
+    assert not self.params.get_bool("HondaClarityPtcFirmware")
+    ui_state.started = False
+    ui_state.CP.carFw[0].fwVersion = b"39990-TRW-A020"
+    assert not panel.ptc_toggle.enabled
+    panel._confirm_ptc()
+    assert not self.params.get_bool("HondaClarityPtcFirmware")
+
+  def test_stale_confirmation_can_be_disabled_offroad_without_eps(self):
+    from openpilot.selfdrive.ui.sunnypilot.mici.layouts.vehicle import VehicleLayoutMici
+    from openpilot.selfdrive.ui.ui_state import ui_state
+    ui_state.CP = None
+    panel = VehicleLayoutMici()
+    assert not panel.ptc_toggle.enabled
+    self.params.put_bool("HondaClarityPtcFirmware", True, block=True)
+    panel._update_state()
+    assert panel.ptc_toggle.enabled and panel.ptc_toggle._checked
+    ui_state.started = True
+    panel._on_ptc_toggle(False)
+    assert self.params.get_bool("HondaClarityPtcFirmware")
+    ui_state.started = False
+    panel._on_ptc_toggle(False)
+    assert not self.params.get_bool("HondaClarityPtcFirmware")
+    assert not panel.ptc_toggle.enabled
