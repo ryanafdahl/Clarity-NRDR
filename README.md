@@ -1,7 +1,7 @@
 # Clarity-NRDR
 
 Clarity-Pilot with explicitly selected NRDR-derived Honda Clarity TRW-A020 PTC
-EPS support and JetLink 0.8.12. Stock and legacy 3x tuning remain available with
+EPS support and JetLink 0.8.7. Stock and legacy 3x tuning remain available with
 PTC off. The PTC confirmation is persistent and off by default on a new install.
 
 Read [firmware selection and PTC behavior](docs/CLARITY_PTC.md) before enabling
@@ -12,11 +12,6 @@ pinned to `b3366b5b56512805be8f0bf832b4981bfd958072`.
 qualify the firmware or physical steering response for general use.**
 
 ## Latest deployment and drive review
-
-The October 31 maintenance update pins stable JetLink 0.8.12 on the comma to
-match the car Jetson. Protocol 3 and adapter API 3 are unchanged. The adapter
-also forwards a model picked on the server through the existing model manager.
-The selected Pop Model v2 small model and Cinque Terre V2 large model are preserved.
 
 The [October 17 PTC drive review](docs/CLARITY_PTC_DRIVE_2026-10-17.md) confirms
 the new profile was active on the comma 4 after the owner-reported firmware
@@ -42,17 +37,18 @@ exclude raw routes, location and identifiers.
 | PTC UI on comma 4 | Settings → vehicle → Clarity PTC; explicit firmware confirmation |
 | PTC UI on comma 3X | Vehicle → Clarity PTC Firmware Installed (Honda) |
 | Reviewed EPS image | ClarityMax 20260928 Pminus5/A280Flat/KFF45/Tracker3200/Norm1650-3840; see the exact filename and hash in the PTC guide |
-| JetLink client | Stable 0.8.12, `a863c38`, protocol 3, adapter API 3 |
-| Jetson server | Native 0.8.12; October 31 USB session identifies Orin-sm87 / TensorRT 10.16.2.10 |
+| JetLink client | Stable 0.8.7, `d26001b`, protocol 3, adapter API 3 |
+| Jetson server | Last checked live as native 0.8.7; October 17 drive identifies Orin-sm87 / TensorRT 10.16.2.10 |
 | Jetson hardware | Orin Nano Super Developer Kit, 8 GB; module P3767-0005, carrier P3768-0000, tegra234 |
 | Jetson OS and power | JetPack 7.2.1 / L4T 39.2.1, MAXN_SUPER; switched car power |
-| Current saved small model | Pop Model v2, March 24, 2026; selection preserved |
+| Current saved small model | CD210, February 3, 2026; selection preserved |
 | Current saved large model | Cinque Terre V2, September 8, 2026; selection preserved |
 | Data connection | Jetson USB-A host → comma USB-C, USB 3 data cable; separate power |
 | Jetson model cache | `/mnt/data/jetlink` |
 
-The October 31 parked maintenance session verified the physical USB 3 connection
-and collected both devices' logs. Pixel results in the older reports describe earlier
+The Jetson is powered off after parking; its current absence is not a connection
+failure. Its independent boot journal and a new parked test were unavailable
+for the latest review. Pixel results in the older reports describe earlier
 software and do not qualify the current Android release.
 
 ## Firmware and profile selection
@@ -78,7 +74,7 @@ permit the handoff. Link loss returns inference to the small model and invokes
 the existing takeover protections. This does not guarantee uninterrupted
 engagement. EPS profile selection is independent of accelerator selection.
 
-The current source pins [JetLink v0.8.12](https://github.com/zoompilot/jetlink/releases/tag/v0.8.12).
+The current source pins [JetLink v0.8.7](https://github.com/zoompilot/jetlink/releases/tag/v0.8.7).
 Its resident USB owner, API 3 handoff checks, model preparation and camera warp
 have been integrated and tested. On the comma choose **Settings → Models →
 JetLink → USB** and select the large model. [Setup and validation](docs/JETLINK.md).
@@ -110,12 +106,12 @@ For the matching native Jetson installation, retain its power settings and
 engine cache and use the pinned upstream update:
 
 ```sh
-jetlink update --ref v0.8.12
+jetlink update --ref v0.8.7
 jetlink status
 ```
 
-Follow the [Jetson guide at v0.8.12](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/jetson.md)
-for installation. [Current Android guide](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/android-app.md):
+Follow the [Jetson guide at v0.8.7](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/jetson.md)
+for installation. [Current Android guide](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/android-app.md):
 the archived 0.8.0 APK is historical and was not updated or qualified in this PTC review.
 
 ## Validation and retained history
@@ -153,7 +149,7 @@ For the next parked check, confirm the server and engine are ready, the comma sh
 
 | Symptom | Check |
 | --- | --- |
-| JetLink is inactive after boot | Inspect `jetlink status` and `jetlink-server.service` first. The CDI/nvpmodel notes below describe the older Docker installation; current 0.8.12 runs natively. |
+| JetLink is inactive after boot | Inspect `jetlink status` and `jetlink-server.service` first. The CDI/nvpmodel notes below describe the older Docker installation; current 0.8.7 runs natively. |
 | Accelerator never becomes ready | Check the USB-A-to-USB-C data cable, JetLink USB setting, server status, selected model, and engine-preparation log. |
 | Delay or lag at startup | Separate small-model initialization, Jetson boot, engine loading, and the first USB inference exchange. Startup outliers do not establish steady-state GPU slowdown. |
 | USB link drops | Compare both devices' logs with the timing of power changes; inspect the cable, USB negotiation, supply, and cooling. Preserve fallback protections. |

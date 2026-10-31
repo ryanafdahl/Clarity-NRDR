@@ -1,18 +1,13 @@
 # JetLink on Clarity-NRDR
 
-This repository pins JetLink **v0.8.12**, commit
-`a863c3801da6fd925d14eb1f5b1e250f8efcc649`, protocol v3, openpilot integration
-API 3. The matching [release](https://github.com/zoompilot/jetlink/releases/tag/v0.8.12)
+This repository pins JetLink **v0.8.7**, commit
+`d26001b4161f33bab28d806de6a99b96325a429b`, protocol v3, openpilot integration
+API 3. The matching [release](https://github.com/zoompilot/jetlink/releases/tag/v0.8.7)
 provides Jetson/Linux servers and companion apps. The comma 4 deployment and
 October 17 USB 3 drive are now recorded in the
 [PTC drive review](CLARITY_PTC_DRIVE_2026-10-17.md). That drive identifies the
 Orin/TensorRT peer, 17,681 consecutive large-model outputs and no fallback after
 joining. The startup enumeration retry and qualification limits remain documented.
-
-The October 31 update advances the client from 0.8.7 to 0.8.12 and retains API 3.
-`Keys.select` names `ModelManager_DownloadRef`, so a newer server-side model pick
-also updates the comma's model manager. Existing selected models, PTC confirmation,
-and handoff gating are preserved.
 
 ## Install or update the comma checkout
 
@@ -27,7 +22,7 @@ git submodule update --init --recursive
 The startup launcher exposes `jetlink_repo/jetlink` as the Python package.
 SCons builds the camera warp in the fork's adapter directory before manager
 starts. The warp uses this fork's NV12 graph and tinygrad pin, with the batched
-`M_inv` and `input_frame` layout required by v0.8.12. Missing or incompatible
+`M_inv` and `input_frame` layout required by v0.8.7. Missing or incompatible
 warps keep inference on the small model.
 
 Offroad, choose **Settings → Models → JetLink → USB** for a Jetson, Mac or
@@ -49,24 +44,24 @@ place before fallback, including this fork's legacy bundle layouts.
 
 Update peers separately, while parked, following the pinned upstream guides:
 
-- [Jetson](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/jetson.md)
-- [Linux PC](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/linux-pc.md)
-- [Android](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/android-app.md)
-- [Mac](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/macos-app.md)
-- [iPhone/iPad](https://github.com/zoompilot/jetlink/blob/v0.8.12/docs/iphone-app.md)
+- [Jetson](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/jetson.md)
+- [Linux PC](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/linux-pc.md)
+- [Android](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/android-app.md)
+- [Mac](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/macos-app.md)
+- [iPhone/iPad](https://github.com/zoompilot/jetlink/blob/v0.8.7/docs/iphone-app.md)
 
 For an existing native Jetson installation, pin the update explicitly:
 
 ```sh
-jetlink update --ref v0.8.12
+jetlink update --ref v0.8.7
 jetlink status
 ```
 
 For a new server installation, use the pinned installer:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/zoompilot/jetlink/v0.8.12/install.sh -o install-v0.8.12.sh
-bash install-v0.8.12.sh --ref v0.8.12
+curl -fsSL https://raw.githubusercontent.com/zoompilot/jetlink/v0.8.7/install.sh -o install-v0.8.7.sh
+bash install-v0.8.7.sh --ref v0.8.7
 ```
 
 The current catalog is supplied by the pinned JetLink registry through the

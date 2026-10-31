@@ -489,8 +489,8 @@ class Footprint:
     # read out of main() rather than kept by hand. A read the joining model
     # cannot answer is an AttributeError on the frame thread, which modeld
     # re-raises: no driving model for the drive, on jetlink devices only. A
-    # Shared tuning writes must reach the small model. frame_drop_ratio is
-    # consumed by JetLink's lag guard, not by either small-model implementation.
+    # write without a setter lands on the joining model and never reaches the
+    # model that is driving
     loads, stores = _model_attributes(self.src)
     self.assertIn('run', loads, "this no longer finds what the loop reads off the model")
     self.assertEqual(sorted(n for n in loads | stores if n.startswith('_')), [])
@@ -517,12 +517,7 @@ class Footprint:
       self.assertEqual(missing, [], f"JoiningModelState cannot answer {missing}, which {self.PATH.name} reads")
       for name in stores:
         setattr(joining, name, 1.0)
-        self.assertEqual(getattr(joining, name), 1.0)
-        if name == 'frame_drop_ratio':
-          self.assertNotIn(name, loads)
-          self.assertEqual(getattr(small, name), 0.0)
-        else:
-          self.assertEqual(getattr(small, name), 1.0, f"model.{name} = ... does not reach the small model")
+        self.assertEqual(getattr(small, name), 1.0, f"model.{name} = ... does not reach the small model")
     finally:
       stop.set()
       joining.close()
