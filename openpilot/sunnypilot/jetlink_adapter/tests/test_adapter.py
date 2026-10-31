@@ -100,7 +100,7 @@ class TestParams(OpenpilotTestCase):
     self.assertNotEqual(settings.marks()[KEYS.big_model], before)
 
   def test_every_key_is_declared_with_its_type(self):
-    types = {'link': ParamKeyType.INT, 'offroad': ParamKeyType.BOOL, 'charge_phone': ParamKeyType.BOOL}
+    types = {'link': ParamKeyType.INT, 'offroad': ParamKeyType.BOOL, 'charge_phone': ParamKeyType.BOOL, 'select': ParamKeyType.STRING}
     params = Params()
     for field, key in KEYS._asdict().items():
       self.assertEqual(params.get_type(key), types.get(field, ParamKeyType.JSON), key)
@@ -109,6 +109,7 @@ class TestParams(OpenpilotTestCase):
     from openpilot.sunnypilot.models.fetcher import ModelFetcher
     from openpilot.sunnypilot.models.helpers import ACTIVE_BUNDLE_KEYS, REQUIRED_JSON_VERSION
     self.assertEqual(KEYS.big_model, ACTIVE_BUNDLE_KEYS['chestnut'])
+    self.assertEqual(KEYS.select, 'ModelManager_DownloadRef')
     self.assertEqual(KEYS.catalog, f"ModelManager_ModelsCache{ModelFetcher.MODEL_SOURCES['chestnut'][1]}")
     self.assertEqual(Adapter().catalog_selector, REQUIRED_JSON_VERSION)
 
