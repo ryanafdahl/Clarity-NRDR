@@ -9,15 +9,24 @@ October 17 USB 3 drive are now recorded in the
 Orin/TensorRT peer, 17,681 consecutive large-model outputs and no fallback after
 joining. The startup enumeration retry and qualification limits remain documented.
 
-The October 31 update advances the client from 0.8.7 to 0.8.12 and retains API 3.
+The November 1 ignition-off installation restores the client from 0.8.7 to
+0.8.12 after the precautionary rollback and retains API 3.
 `Keys.select` names `ModelManager_DownloadRef`, so a newer server-side model pick
 also updates the comma's model manager. Existing selected models, PTC confirmation,
 and handoff gating are preserved.
 
+The [November 1 parked validation](JETLINK_PARKED_2026-11-01.md) covers the
+installation checks, real reboot and subsequent physical USB session. It records
+860 large-model frames at 23.53 ms mean execution, with no fallback after joining
+or returning ACC/brake fault. The initial handshake retry, brief startup flags
+and qualification limits are included. The original dashboard warning cause
+remains unconfirmed.
+
 ## Install or update the comma checkout
 
-Update this repository and its pinned submodules on the comma, then build and
-restart using the normal source-install workflow:
+With ignition off, update this repository and its pinned submodules on the comma,
+then build and restart using the normal source-install workflow. Check the next
+ignition-on/USB session while parked with assistance disengaged:
 
 ```sh
 git pull --ff-only

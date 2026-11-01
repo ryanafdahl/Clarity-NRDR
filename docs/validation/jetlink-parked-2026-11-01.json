@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-01",
+  "scope": "One completed stationary startup; full rlogs; assistance disengaged. Aggregate results only.",
+  "software": {
+    "comma_commit": "87d9989d29d89fcb61eef8a5d6477d493ac45b8f",
+    "jetlink_client_version": "0.8.12",
+    "jetlink_pin": "a863c3801da6fd925d14eb1f5b1e250f8efcc649",
+    "server_version": "0.8.12",
+    "server_version_evidence": "Prior direct verification and owner confirmation; server powered off during log retrieval.",
+    "protocol": 3,
+    "adapter_api": 3
+  },
+  "installation": {
+    "ignition_off_installation": true,
+    "real_reboot_verified": true,
+    "settings_preserved": true,
+    "adapter_conformance_errors": [],
+    "adapter_tests": {
+      "passed": 119,
+      "skipped": 3
+    }
+  },
+  "peer": {
+    "device_class": "Orin-sm87",
+    "runtime": "10.16.2.10",
+    "backend": "trt",
+    "transport": "USB SuperSpeed"
+  },
+  "models": {
+    "small": "Pop Model v2 (March 24, 2026)",
+    "large": "Cinque Terre Model V2 (September 08, 2026)",
+    "large_sha256": "09d080f36965bb2a0790500452bd328aa03c484d0222aa79d1ad9f021a522aec",
+    "ptc_confirmation_preserved": true
+  },
+  "recording": {
+    "sessions": 1,
+    "rlog_segments": 2,
+    "qlog_segments_retained": 2,
+    "analyzed_stream": "full rlogs",
+    "span_seconds": 70.751,
+    "maximum_speed_mps": 0,
+    "active_control_samples": 0
+  },
+  "startup": {
+    "handshake_retries": 1,
+    "handshake_retry_seconds": 20.055,
+    "retry_delay_seconds": 5,
+    "link_ready_seconds": 27.714,
+    "first_large_model_seconds": 27.761,
+    "can_valid_seconds": 7.65,
+    "initial_invalid_car_state_samples": 15,
+    "lkas_startup_indicator_cleared_seconds": 2.13,
+    "brake_system_icon_cleared_seconds": 5.127,
+    "diagnostic_mode_tx_rejections": 6,
+    "honda_safety_mode_seconds": 10.582
+  },
+  "large_model_execution_ms": {
+    "frames": 860,
+    "mean": 23.532090063185194,
+    "p95": 24.12203513085842,
+    "max": 31.217699870467186,
+    "over50": 0
+  },
+  "small_model_execution_ms": {
+    "frames": 370,
+    "mean": 30.086993254922533,
+    "p95": 27.088429778814316,
+    "max": 1386.1552476882935,
+    "over50": 1
+  },
+  "small_frames_after_large_join": 0,
+  "maximum_reported_frame_drop_percent": 0,
+  "car_state_counts": {
+    "active_controls": 0,
+    "samples": 6295,
+    "accFaulted": 0,
+    "canValid": 6280,
+    "canTimeout": 0,
+    "steerFaultPermanent": 0,
+    "steerFaultTemporary": 0,
+    "carFaultedNonCritical": 0
+  },
+  "panda_counts": {
+    "samples": 702,
+    "fault_samples": 0,
+    "heartbeat_lost_samples": 0
+  },
+  "decoded_can_fault_counts": {
+    "BRAKE_ERROR_1_samples": 7061,
+    "BRAKE_ERROR_1_asserted": 0,
+    "BRAKE_ERROR_2_samples": 7061,
+    "BRAKE_ERROR_2_asserted": 0,
+    "BRAKE_SYSTEM_ICON_samples": 704,
+    "BRAKE_SYSTEM_ICON_asserted": 48,
+    "ACC_PROBLEM_samples": 704,
+    "ACC_PROBLEM_asserted": 0,
+    "FCM_PROBLEM_samples": 704,
+    "FCM_PROBLEM_asserted": 0,
+    "LKAS_PROBLEM_samples": 704,
+    "LKAS_PROBLEM_asserted": 19
+  },
+  "selected_can_checksum_failures": 0,
+  "notable_event_message_counts": {
+    "accFaulted": 0,
+    "controlsMismatch": 0,
+    "radarFault": 0,
+    "commIssue": 0,
+    "commIssueAvgFreq": 0,
+    "selfdrivedLagging": 0
+  },
+  "all_event_message_counts": {
+    "selfdriveInitializing": 4,
+    "wrongGear": 64,
+    "seatbeltNotLatched": 64,
+    "parkBrake": 64,
+    "bigModelLoading": 2,
+    "preEnableStandstill": 1
+  },
+  "qualification": {
+    "parked_startup_verified": true,
+    "driving_qualified_by_this_check": false,
+    "prior_fault_root_cause_established": false,
+    "raw_logs_published": false,
+    "camera_frame_accounting_independently_verified": false,
+    "notes": [
+      "Model execution is not camera-to-publication latency.",
+      "Brief LKAS and brake-system icon startup flags cleared before the model join.",
+      "One initial USB handshake retry and one slow small-model warm-up frame are retained in the results.",
+      "The powered-off peer status after the session is expected."
+    ]
+  }
+}

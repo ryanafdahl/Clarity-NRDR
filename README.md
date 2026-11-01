@@ -13,10 +13,18 @@ qualify the firmware or physical steering response for general use.**
 
 ## Latest deployment and drive review
 
-The October 31 maintenance update pins stable JetLink 0.8.12 on the comma to
-match the car Jetson. Protocol 3 and adapter API 3 are unchanged. The adapter
-also forwards a model picked on the server through the existing model manager.
-The selected Pop Model v2 small model and Cinque Terre V2 large model are preserved.
+The November 1 ignition-off installation and reboot verified stable JetLink
+0.8.12 on the comma, matching the car Jetson's previously verified server version.
+The adapter regression suite passed **119 tests, with 3 skipped**. Protocol 3,
+adapter API 3, the selected models and PTC confirmation are preserved.
+
+The [November 1 parked validation](docs/JETLINK_PARKED_2026-11-01.md) recorded
+**860 large-model frames** in a 70.751-second stationary session: **23.53 ms mean**,
+**31.22 ms maximum**, no fallback after joining, and no ACC/brake or persistent
+steering fault. The large model joined at **27.76 seconds**, after one USB
+handshake retry. Brief startup indicators and the small-model warm-up are
+documented. This verifies the observed parked startup; the cause of the earlier
+dashboard warnings remains unconfirmed. [Technical aggregates](docs/validation/jetlink-parked-2026-11-01.json).
 
 The [October 17 PTC drive review](docs/CLARITY_PTC_DRIVE_2026-10-17.md) confirms
 the new profile was active on the comma 4 after the owner-reported firmware
@@ -43,7 +51,7 @@ exclude raw routes, location and identifiers.
 | PTC UI on comma 3X | Vehicle → Clarity PTC Firmware Installed (Honda) |
 | Reviewed EPS image | ClarityMax 20260928 Pminus5/A280Flat/KFF45/Tracker3200/Norm1650-3840; see the exact filename and hash in the PTC guide |
 | JetLink client | Stable 0.8.12, `a863c38`, protocol 3, adapter API 3 |
-| Jetson server | Native 0.8.12; October 31 USB session identifies Orin-sm87 / TensorRT 10.16.2.10 |
+| Jetson server | Native 0.8.12 (prior verification); November 1 USB session identifies Orin-sm87 / TensorRT 10.16.2.10 |
 | Jetson hardware | Orin Nano Super Developer Kit, 8 GB; module P3767-0005, carrier P3768-0000, tegra234 |
 | Jetson OS and power | JetPack 7.2.1 / L4T 39.2.1, MAXN_SUPER; switched car power |
 | Current saved small model | Pop Model v2, March 24, 2026; selection preserved |
@@ -51,9 +59,10 @@ exclude raw routes, location and identifiers.
 | Data connection | Jetson USB-A host → comma USB-C, USB 3 data cable; separate power |
 | Jetson model cache | `/mnt/data/jetlink` |
 
-The October 31 parked maintenance session verified the physical USB 3 connection
-and collected both devices' logs. Pixel results in the older reports describe earlier
-software and do not qualify the current Android release.
+The November 1 parked session verified the physical USB 3 connection and large-model
+output from the restored 0.8.12 integration. The Jetson was powered off during log
+retrieval; its peer identity comes from the recorded session. Pixel results in the
+older reports describe earlier software and do not qualify the current Android release.
 
 ## Firmware and profile selection
 
@@ -97,9 +106,10 @@ Custom Software installer URL for Clarity-NRDR has not been validated. Preserve
 settings, needed logs and rollback files before any reinstall. Publishing a
 commit does not update an installed device automatically.
 
-For an existing matching checkout, update while parked, review local changes,
-build with the device's normal source-install workflow, then restart and check
-its recorded profile and model selections:
+For an existing matching checkout, perform installation, builds and restarts
+with ignition off. Review local changes and use the device's normal source-install
+workflow. After reboot, check the recorded profile and model selections, then
+verify the next ignition-on/USB session while parked with assistance disengaged:
 
 ```sh
 git pull --ff-only
