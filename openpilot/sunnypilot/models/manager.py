@@ -18,7 +18,7 @@ from openpilot.common.hardware.hw import Paths
 from openpilot.cereal import messaging, custom
 from openpilot.sunnypilot.models.fetcher import ModelFetcher
 from openpilot.sunnypilot.models.initial_model import INITIAL_SMALL_MODEL_REF, P_INITIALIZED
-from openpilot.sunnypilot.models.helpers import (ACTIVE_BUNDLE_KEYS, _bundle_is_valid_locally, get_active_bundle, get_selected_bundle,
+from openpilot.sunnypilot.models.helpers import (ACTIVE_BUNDLE_KEYS, _bundle_artifacts, _bundle_is_valid_locally, get_active_bundle, get_selected_bundle,
                                                   resolve_bundle_by_ref, validate_active_bundles, verify_file)
 
 # (connect, read) seconds. read is per-request inactivity, not a total cap
@@ -318,8 +318,8 @@ class ModelManagerSP:
     if not isinstance(raw, dict) or raw.get("ref") in self._big_files_checked:
       return   # the raw ref first: parsing the slot every tick is not worth a set lookup
     bundle = get_selected_bundle(self.params, "chestnut")
-    if bundle is None:
-      return
+    if bundle is None or not _bundle_artifacts(bundle):
+      return  # retry after a native catalog restores this index-only choice's manifest
     self._big_files_checked.add(bundle.ref)
     if not _bundle_is_valid_locally(bundle):
       cloudlog.warning(f"Fetching the files of the selected big model {bundle.displayName} for the chestnut")

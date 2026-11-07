@@ -12,7 +12,7 @@ from requests.exceptions import (SSLError, RequestException, HTTPError)
 from openpilot.common.params import Params
 from openpilot.common.swaglog import cloudlog
 from openpilot.common.hardware.hw import Paths
-from openpilot.sunnypilot.models.helpers import is_bundle_version_compatible
+from openpilot.sunnypilot.models.helpers import REQUIRED_JSON_VERSION, is_bundle_version_compatible
 from openpilot.cereal import custom
 
 
@@ -163,8 +163,8 @@ class ModelFetcher:
     "qcom": (MODEL_URL, ""),
     "chestnut": (MODEL_URL_CHESTNUT, "_Chestnut"),
   }
-  # stamped on the big-model catalog: whether it carries the newer catalogs' models
-  EXTENDED_KEY = "extended"
+  # The big-model cache follows the hardware: Jetlink's index or native chestnut artifacts.
+  INDEX_KEY = "jetlink_index"
 
   def __init__(self, params: Params):
     self.params = params
@@ -174,7 +174,7 @@ class ModelFetcher:
       for source, (_, suffix) in self.MODEL_SOURCES.items()
     }
     self._refetched: set[str] = set()
-    self._refetched_extends: bool | None = None
+    self._refetched_index: bool | None = None
     self.params.put("ModelManager_ActiveJson", {
       "qcom": self.MODEL_URL,
       "chestnut": self.MODEL_URL_CHESTNUT,
@@ -190,21 +190,23 @@ class ModelFetcher:
     """
     model_url, _ = self.MODEL_SOURCES[source]
     try:
-      response = requests.get(model_url, timeout=10)
-
-      # Explicitly handle 404 differently
-      if response.status_code == 404:
-        cloudlog.error(f"Models URL returned 404 Not Found: {model_url}")
-        raise HTTPError(f"404 Not Found: {model_url}", response=response)
-
-      # Raise for any other 4xx/5xx
-      response.raise_for_status()
-
-      json_data = response.json()
+      indexed = False
       if source == "chestnut":
         from openpilot.sunnypilot import jetlink_adapter
-        extended = jetlink_adapter.should_extend_catalog()
-        json_data = {**(jetlink_adapter.extend_catalog(json_data) if extended else json_data), self.EXTENDED_KEY: extended}
+        indexed = jetlink_adapter.lists_big_models()
+      if indexed:
+        json_data = jetlink_adapter.big_catalog(REQUIRED_JSON_VERSION)
+        if json_data is None:
+          return None  # an unavailable index keeps the last list and pick
+      else:
+        response = requests.get(model_url, timeout=10)
+        if response.status_code == 404:
+          cloudlog.error(f"Models URL returned 404 Not Found: {model_url}")
+          raise HTTPError(f"404 Not Found: {model_url}", response=response)
+        response.raise_for_status()
+        json_data = response.json()
+      if source == "chestnut":
+        json_data = {**json_data, self.INDEX_KEY: indexed}
       parsed = self.model_parser.parse_models(json_data)
       if parsed:
         self.model_caches[source].set(json_data)
@@ -229,16 +231,14 @@ class ModelFetcher:
       return any(bundle.get("is_big") is True for bundle in bundles)
     return not any(bundle.get("is_big") is True for bundle in bundles)
 
-  def _extension_stale(self, cached_data: dict) -> bool:
-    """Was the big-model catalog fetched for other hardware? A chestnut coming or going
-    changes whether it is extended, and the cache would otherwise hide that for an hour.
-    Once per change: offline, the refetch fails and the cache stands until it expires."""
+  def _index_stale(self, cached_data: dict) -> bool:
+    """Refetch once when the hardware's catalog changes; offline, retain the cache."""
     from openpilot.sunnypilot import jetlink_adapter
-    extends = jetlink_adapter.should_extend_catalog()
-    if bool(cached_data.get(self.EXTENDED_KEY)) == extends or self._refetched_extends == extends:
+    indexed = jetlink_adapter.lists_big_models()
+    if bool(cached_data.get(self.INDEX_KEY)) == indexed or self._refetched_index == indexed:
       return False
-    self._refetched_extends = extends
-    cloudlog.warning(f"big-model catalog was fetched {'without' if extends else 'with'} the newer catalogs; refetching")
+    self._refetched_index = indexed
+    cloudlog.warning("big-model catalog source changed; refetching")
     return True
 
   def get_bundles_for_source(self, source: str) -> list[custom.ModelManagerSP.ModelBundle]:
@@ -247,10 +247,14 @@ class ModelFetcher:
       return []
 
     cached_data, is_expired = self.model_caches[source].get()
-    if source == "chestnut" and cached_data and not is_expired and self._extension_stale(cached_data):
+    if source == "chestnut" and cached_data and not is_expired and self._index_stale(cached_data):
       is_expired = True
 
     if cached_data and not is_expired:
+      if source == "chestnut" and cached_data.get(self.INDEX_KEY):
+        from openpilot.sunnypilot import jetlink_adapter
+        if not jetlink_adapter.lists_big_models():
+          return []  # a failed source change never exposes index rows as native artifacts
       # a source is refetched over a mismatch at most once per process: if the fresh
       # manifest still mismatches, the URL is authoritative and the cache is trusted
       if self._cache_matches_source(source, cached_data) or source in self._refetched:
@@ -275,6 +279,12 @@ class ModelFetcher:
 
     if not cached_data:
       cloudlog.warning("Failed to fetch fresh data and no cache available")
+
+    if source == "chestnut" and cached_data and cached_data.get(self.INDEX_KEY):
+      from openpilot.sunnypilot import jetlink_adapter
+      if not jetlink_adapter.lists_big_models():
+        cloudlog.warning("Native chestnut catalog unavailable; keeping its choice until artifact metadata is fetched")
+        return []  # index entries cannot supply a native chestnut's artifacts
 
     cloudlog.warning("Failed to fetch fresh data. Using expired cache as fallback")
     try:

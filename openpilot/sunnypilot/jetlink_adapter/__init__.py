@@ -33,7 +33,7 @@ from pathlib import Path
 
 # the version of jetlink.openpilot's API this adapter is written to; any other
 # is treated as jetlink being absent, with the reason as the offroad alert
-API = 3
+API = 4
 
 # the gadget owner, as manager names the process and selfdrived lists it
 OWNER = 'jetlinkd'
@@ -177,11 +177,6 @@ class Adapter:
     from openpilot.common.hardware.hw import Paths
     return Path(Paths.model_root())
 
-  @property
-  def catalog_selector(self) -> int:
-    from openpilot.sunnypilot.models.helpers import REQUIRED_JSON_VERSION
-    return REQUIRED_JSON_VERSION
-
   # -- modeld -----------------------------------------------------------------
 
   def model_face(self):
@@ -274,11 +269,14 @@ class _Absent:
   def shutdown_pending(self) -> bool:
     return False
 
-  def should_extend_catalog(self) -> bool:
+  def lists_big_models(self) -> bool:
     return False
 
-  def extend_catalog(self, catalog: dict) -> dict:
-    return catalog
+  def big_catalog(self, selector: int) -> dict | None:
+    return None
+
+  def listed_ref(self, ref: str) -> str | None:
+    return None
 
   def model_state(self, ref: str) -> str | None:
     return None
@@ -468,14 +466,18 @@ def model_state(ref: str) -> str | None:
 
 
 @_guarded(False)
-def should_extend_catalog() -> bool:
-  """Should the big-model catalog carry the models newer catalogs list?
-  Hardware, not the link setting: the model manager drops a pick its catalog
-  does not list."""
-  return _api().should_extend_catalog()
+def lists_big_models() -> bool:
+  """Use Jetlink's model index without a physical chestnut, even with the link off."""
+  return _api().lists_big_models()
 
 
-@_guarded(lambda catalog: catalog)
-def extend_catalog(catalog: dict) -> dict:
-  """The big-model catalog with those models folded in."""
-  return _api().extend_catalog(catalog)
+@_guarded(None)
+def big_catalog(selector: int) -> dict | None:
+  """The model index in the manager's schema, or None to keep its cached list."""
+  return _api().big_catalog(selector)
+
+
+@_guarded(None)
+def listed_ref(ref: str) -> str | None:
+  """The listed ref for the same ONNX as a previous pick; never fetches."""
+  return _api().listed_ref(ref)

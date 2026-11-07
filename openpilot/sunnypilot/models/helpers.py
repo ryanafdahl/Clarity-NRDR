@@ -154,8 +154,11 @@ def _big_files_ready(params: Params, bundle: custom.ModelManagerSP.ModelBundle) 
     downloading = downloading.decode()
   if downloading == bundle.ref:
     return False
+  artifacts = _bundle_artifacts(bundle)
+  if not artifacts:
+    return False  # an index-only choice has no native chestnut model to run
   model_root = Paths.model_root()
-  return all(os.path.isfile(os.path.join(model_root, name)) for name, _ in _bundle_artifacts(bundle))
+  return all(os.path.isfile(os.path.join(model_root, name)) for name, _ in artifacts)
 
 
 def resolve_bundle_by_ref(
@@ -165,6 +168,13 @@ def resolve_bundle_by_ref(
     for bundle in bundles:
       if bundle.ref == ref:
         return bundle, source
+  # A server pick may name an older export of the same ONNX than the index lists.
+  from openpilot.sunnypilot import jetlink_adapter
+  if jetlink_adapter.lists_big_models():
+    listed = jetlink_adapter.listed_ref(ref)
+    for bundle in source_bundles.get("chestnut", []):
+      if listed and bundle.ref == listed:
+        return bundle, "chestnut"
   return None
 
 
@@ -180,6 +190,35 @@ def _validate_active_bundle(params: Params, source: str, available_bundles: list
   raw_bundle = params.get(key)
   if not raw_bundle:
     return
+
+  if source == "chestnut" and isinstance(raw_bundle, dict):
+    from openpilot.sunnypilot import jetlink_adapter
+    if jetlink_adapter.lists_big_models():
+      ref = raw_bundle.get("ref")
+      indexed = {bundle.ref: bundle for bundle in available_bundles or []}
+      listed = (ref if ref in indexed else jetlink_adapter.listed_ref(ref)) if isinstance(ref, str) else None
+      if listed in indexed:
+        # The accelerator uses the ONNX, not native chestnut artifact metadata.
+        # Keep an unchanged choice byte-for-byte, including its selection time.
+        if ref != listed or _parse_active_bundle(raw_bundle) is None:
+          selected = indexed[listed].to_dict()
+          selected["status"] = raw_bundle.get("status", "downloaded") if _parse_active_bundle(raw_bundle) else "downloaded"
+          params.put(key, selected, block=True)
+          raw_bundle = selected
+        _LAST_VALIDATED_RAW.pop(key, None)
+        return
+    else:
+      # A native chestnut needs the artifact manifest that the index omits.
+      # Carry its existing model choice back to the native bundle, then let
+      # the manager fetch any missing files as it normally does.
+      active = _parse_active_bundle(raw_bundle)
+      native = next((bundle for bundle in available_bundles or [] if bundle.ref == raw_bundle.get("ref")), None)
+      if active is not None and not _bundle_artifacts(active) and native is not None and _bundle_artifacts(native):
+        selected = native.to_dict()
+        selected["status"] = raw_bundle.get("status", "downloaded")
+        params.put(key, selected, block=True)
+        raw_bundle = selected
+        _LAST_VALIDATED_RAW.pop(key, None)
 
   if _LAST_VALIDATED_RAW.get(key) == raw_bundle:
     return

@@ -107,11 +107,10 @@ class TestParams(OpenpilotTestCase):
 
   def test_the_model_managers_keys(self):
     from openpilot.sunnypilot.models.fetcher import ModelFetcher
-    from openpilot.sunnypilot.models.helpers import ACTIVE_BUNDLE_KEYS, REQUIRED_JSON_VERSION
+    from openpilot.sunnypilot.models.helpers import ACTIVE_BUNDLE_KEYS
     self.assertEqual(KEYS.big_model, ACTIVE_BUNDLE_KEYS['chestnut'])
     self.assertEqual(KEYS.select, 'ModelManager_DownloadRef')
     self.assertEqual(KEYS.catalog, f"ModelManager_ModelsCache{ModelFetcher.MODEL_SOURCES['chestnut'][1]}")
-    self.assertEqual(Adapter().catalog_selector, REQUIRED_JSON_VERSION)
 
   def test_values_round_trip_through_params(self):
     op = Adapter()
@@ -409,7 +408,6 @@ class TestManagerStartsADeadOwnerAgain(OpenpilotTestCase):
 
 class TestWithoutAUsableJetlink(OpenpilotTestCase):
   def _hooks(self) -> dict:
-    catalog = {'bundles': []}
     return {
       'should_run': jetlink_adapter.should_run(False, None, None),
       'status': jetlink_adapter.status(),
@@ -418,14 +416,15 @@ class TestWithoutAUsableJetlink(OpenpilotTestCase):
       'attach': jetlink_adapter.attach(object(), 1, 1),
       'request_shutdown': jetlink_adapter.request_shutdown('test'),
       'shutdown_pending': jetlink_adapter.shutdown_pending(),
-      'should_extend_catalog': jetlink_adapter.should_extend_catalog(),
-      'extend_catalog': jetlink_adapter.extend_catalog(catalog) is catalog,
+      'lists_big_models': jetlink_adapter.lists_big_models(),
+      'big_catalog': jetlink_adapter.big_catalog(19),
+      'listed_ref': jetlink_adapter.listed_ref('a' * 40),
       'model_state': jetlink_adapter.model_state('f' * 40),
     }
 
   NULL = {'should_run': False, 'status': None, 'reason': None, 'prepare': False, 'attach': None,
           'request_shutdown': False, 'shutdown_pending': False,
-          'should_extend_catalog': False, 'extend_catalog': True, 'model_state': None}
+          'lists_big_models': False, 'big_catalog': None, 'listed_ref': None, 'model_state': None}
 
   def test_without_a_checkout_every_hook_is_the_link_off(self):
     # an empty jetlink_repo: manager, the UI, hardwared and modeld must not care
@@ -435,12 +434,11 @@ sys.modules['jetlink'] = None
 from openpilot.common.params import Params
 from openpilot.sunnypilot import jetlink_adapter as a
 Params().put("JetlinkLink", 1, block=True)
-c = {'bundles': []}
 assert not a.should_run(False, None, None)
 assert a.status() is None and a.reason() is None
 assert not a.prepare() and a.attach(object(), 1, 1) is None
 assert not a.request_shutdown('test') and not a.shutdown_pending()
-assert not a.should_extend_catalog() and a.extend_catalog(c) is c
+assert not a.lists_big_models() and a.big_catalog(19) is None and a.listed_ref('a' * 40) is None
 assert a.model_state('f' * 40) is None
 '''
     # under this test's prefix, which the child inherits
@@ -449,7 +447,7 @@ assert a.model_state('f' * 40) is None
 
   def test_another_api_turns_the_link_off_and_says_why(self):
     params = Params()
-    for api, name, why in ((1, 'API', "jetlink package API 1, this build expects 3"),
+    for api, name, why in ((1, 'API', "jetlink package API 1, this build expects 4"),
                            (None, 'openpilot', "jetlink package too old for this build")):
       if name == 'API':
         patch = mock.patch.object(jl, 'API', api)

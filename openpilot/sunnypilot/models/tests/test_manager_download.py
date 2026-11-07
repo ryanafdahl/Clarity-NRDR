@@ -31,10 +31,8 @@ from openpilot.sunnypilot.models.helpers import (ACTIVE_BUNDLE_KEYS, get_active_
                                                   resolve_bundle_by_ref, validate_active_bundles)
 from openpilot.sunnypilot.models.manager import ModelManagerSP
 
-# the model manager's catalog as fetched, never the one an installed jetlink extends
-# with newer catalogs (jetlink_adapter.extend_catalog): that depends on the checkout and
-# reaches the network
-_catalog_as_fetched = mock.patch("openpilot.sunnypilot.jetlink_adapter.should_extend_catalog", return_value=False)
+# Native model-manager tests use the pinned catalog rather than Jetlink's index.
+_catalog_as_fetched = mock.patch("openpilot.sunnypilot.jetlink_adapter.lists_big_models", return_value=False)
 
 
 def setUpModule():
@@ -497,6 +495,19 @@ def manifest_bundle(short_name: str, ref: str, index: int = 0, is_big: bool = Fa
   }
 
 
+def ready_native_bundle(directory: str, name: str, ref: str, runner: int | None = None) -> dict:
+  """A native selection with a real local artifact and matching manifest hash."""
+  body = b'native selection fixture'
+  with open(os.path.join(directory, name + '.pkl'), 'wb') as artifact:
+    artifact.write(body)
+  manifest = manifest_bundle(name, ref, is_big=True)
+  manifest['models'][0]['artifact']['download_uri']['sha256'] = hashlib.sha256(body).hexdigest()
+  bundle = ModelParser.parse_models({'bundles': [manifest]})[0]
+  if runner is not None:
+    bundle.runner = runner
+  return bundle.to_dict()
+
+
 def fresh_sync_time() -> int:
   return int(time.monotonic() * 1e9)
 
@@ -703,11 +714,13 @@ class TestActiveBundleValidation(OpenpilotTestCase):
 
   def test_reset_recomputes_runner_from_surviving_slot(self):
     tinygrad = int(custom.ModelManagerSP.Runner.tinygrad)
-    big_raw = self._raw_bundle("big", runner=tinygrad)
-    params = self._params(qcom=self._raw_bundle("gone"), chestnut=big_raw)
-    catalog = {"qcom": [custom.ModelManagerSP.ModelBundle(**self._raw_bundle("other"))],
-               "chestnut": [custom.ModelManagerSP.ModelBundle(**big_raw)]}
-    with mock.patch("openpilot.sunnypilot.models.helpers.chestnut_present", return_value=True):
+    with tempfile.TemporaryDirectory() as model_root, \
+         mock.patch.object(helpers.Paths, 'model_root', return_value=model_root), \
+         mock.patch("openpilot.sunnypilot.models.helpers.chestnut_present", return_value=True):
+      big_raw = ready_native_bundle(model_root, "big", "big", runner=tinygrad)
+      params = self._params(qcom=self._raw_bundle("gone"), chestnut=big_raw)
+      catalog = {"qcom": [custom.ModelManagerSP.ModelBundle(**self._raw_bundle("other"))],
+                 "chestnut": [custom.ModelManagerSP.ModelBundle(**big_raw)]}
       validate_active_bundles(params, catalog)
     params.remove.assert_called_once_with("ModelManager_ActiveBundle")
     runner_puts = [call for call in params.put.call_args_list if call.args[0] == "ModelRunnerTypeCache"]
@@ -867,8 +880,11 @@ class TestActiveBundleSelection(OpenpilotTestCase):
       assert get_active_bundle(params).ref == "small"
 
   def test_gpu_uses_chestnut_slot(self):
-    params = self._params(qcom=self._raw_bundle("small"), chestnut=self._raw_bundle("big"))
-    with mock.patch("openpilot.sunnypilot.models.helpers.chestnut_present", return_value=True):
+    with tempfile.TemporaryDirectory() as model_root, \
+         mock.patch.object(helpers.Paths, 'model_root', return_value=model_root), \
+         mock.patch("openpilot.sunnypilot.models.helpers.chestnut_present", return_value=True):
+      native = ready_native_bundle(model_root, "big", "big")
+      params = self._params(qcom=self._raw_bundle("small"), chestnut=native)
       assert get_active_bundle(params).ref == "big"
 
   def test_gpu_without_big_selection_is_hardware_default(self):
